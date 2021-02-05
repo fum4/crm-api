@@ -20,12 +20,21 @@ app.use(function (req, res, next) {
 });
 
 const success = (res, payload) => {
+  const { matchedCount, modifiedCount } = res;
+
+  console.log('#### success ::: matchedCount / modifiedCount : ', matchedCount, modifiedCount);
+
   res.json(payload);
   res.status(200);
 }
 
 const error = (res, error) => {
-  res.json(error);
+  const { matchedCount, modifiedCount } = res;
+
+  console.log('#### error ::: matchedCount / modifiedCount : ', matchedCount, modifiedCount);
+
+  console.log('#### query response -> ', res);
+  console.log('#### error -> ', error);
   res.status(500);
 }
 
@@ -60,12 +69,22 @@ MongoClient.connect(mongoUri, (err, client) => {
     });
 
     app.post('/appointment', (req, res) => {
-      const { appointment, control, date, price, technician, treatment } = req.body;
+      const { client, appointment, control, date, price, technician, treatment } = req.body;
+      const query = { '_id': client };
+      const update = {
+        '$push': {
+          'appointments': {
+            'appointment': appointment,
+            'control': control,
+            'date': date,
+            'price': price,
+            'technician': technician,
+            'treatment': treatment,
+          }
+        }
+      };
 
-      clientsCollection.updateOne(
-        { _id: req.body.client },
-        { $push: { 'appointments': { appointment, control, date, price, technician, treatment } } }
-      )
+      clientsCollection.findOneAndUpdate(query, update)
         .then(results => success(res, results))
         .catch(err => error(err));
     });
@@ -81,19 +100,39 @@ MongoClient.connect(mongoUri, (err, client) => {
     });
 
     app.delete('/appointment', (req, res) => {
-      clientsCollection.updateOne(
-        { _id: req.body.clientId },
-        { $pull: { '$appointments': { date: req.body.date } } }
+      const { date } = req.body;
+      const query = { 'appointments.date': date };
+      const update = { $pull: { 'appointments': { 'date': date } } };
+
+      clientsCollection.updateOne(query, update)
+        .then(results => success(res, results))
+        .catch(err => error(err));
+    });
+
+    app.delete('/client', (req, res) => {
+      clientsCollection.deleteOne(
+        { _id: req.body.clientId }
       )
         .then(results => success(res, results))
         .catch(err => error(err));
     });
 
     app.put('/appointment', (req, res) => {
-      clientsCollection.updateOne(
-        { _id: req.body.clientId, 'appointments._id': req.body.appointment._id },
-        { $set: res.body.appointment }
-      )
+      const { dateIndex, appointment, control, date, price, technician, treatment } = req.body;
+      const query = { 'appointments.date': dateIndex };
+      const options = { arrayFilters: [{ 'element.date': dateIndex }] };
+      const update = {
+        $set: {
+          'appointments.$[element].appointment': appointment,
+          'appointments.$[element].control': control,
+          'appointments.$[element].date': date,
+          'appointments.$[element].price': price,
+          'appointments.$[element].technician': technician,
+          'appointments.$[element].treatment': treatment,
+        }
+      };
+
+      clientsCollection.updateOne(query, update, options)
         .then(results => success(res, results))
         .catch(err => error(err));
     });
