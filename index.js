@@ -1,6 +1,5 @@
 const express = require('express');
-// const bodyParser = require('body-parser');
-const {MongoClient} = require('mongodb');
+const { MongoClient } = require('mongodb');
 const cors = require('cors');
 
 const app = express();
@@ -32,7 +31,6 @@ const error = (res, error) => {
   const {matchedCount, modifiedCount} = res;
 
   console.log('#### error ::: matchedCount / modifiedCount : ', matchedCount, modifiedCount);
-
   console.log('#### query response -> ', res);
   console.log('#### error -> ', error);
   res.status(500);
@@ -72,6 +70,25 @@ MongoClient.connect(mongoUri, {useNewUrlParser: true, useUnifiedTopology: true},
         .catch((err) => error(err));
     });
 
+    app.delete('/client', (req, res) => {
+      clientsCollection
+        .deleteOne({_id: req.body.clientId})
+        .then((results) => success(res, results))
+        .catch((err) => error(err));
+    });
+
+    app.get('/appointments', (req, res) => {
+      clientsCollection
+        .aggregate([
+          {$unwind: '$appointments'},
+          {$sort: {'appointments.date': 1}},
+          {$project: {appointment: '$appointments', name: 1, surname: 1}}
+        ])
+        .toArray()
+        .then((results) => success(res, results))
+        .catch((err) => error(err));
+    });
+
     app.post('/appointment', (req, res) => {
       const {client, appointment, control, date, price, technician, treatment} = req.body;
       const query = {_id: client};
@@ -89,37 +106,7 @@ MongoClient.connect(mongoUri, {useNewUrlParser: true, useUnifiedTopology: true},
       };
 
       clientsCollection
-        .findOneAndUpdate(query, update)
-        .then((results) => success(res, results))
-        .catch((err) => error(err));
-    });
-
-    app.get('/appointments', (req, res) => {
-      clientsCollection
-        .aggregate([
-          {$unwind: '$appointments'},
-          {$sort: {'appointments.date': 1}},
-          {$project: {appointment: '$appointments', name: 1, surname: 1}}
-        ])
-        .toArray()
-        .then((results) => success(res, results))
-        .catch((err) => error(err));
-    });
-
-    app.delete('/appointment', (req, res) => {
-      const {date} = req.body;
-      const query = {'appointments.date': date};
-      const update = {$pull: {appointments: {date}}};
-
-      clientsCollection
         .updateOne(query, update)
-        .then((results) => success(res, results))
-        .catch((err) => error(err));
-    });
-
-    app.delete('/client', (req, res) => {
-      clientsCollection
-        .deleteOne({_id: req.body.clientId})
         .then((results) => success(res, results))
         .catch((err) => error(err));
     });
@@ -141,6 +128,17 @@ MongoClient.connect(mongoUri, {useNewUrlParser: true, useUnifiedTopology: true},
 
       clientsCollection
         .updateOne(query, update, options)
+        .then((results) => success(res, results))
+        .catch((err) => error(err));
+    });
+
+    app.delete('/appointment', (req, res) => {
+      const {date} = req.body;
+      const query = {'appointments.date': date};
+      const update = {$pull: {appointments: {date}}};
+
+      clientsCollection
+        .updateOne(query, update)
         .then((results) => success(res, results))
         .catch((err) => error(err));
     });
