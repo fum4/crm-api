@@ -1,0 +1,24 @@
+{
+  "env": {
+    "node": true
+  },
+  "extends": ["eslint:recommended", "airbnb-base", "prettier"],
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "plugins": ["prettier", "sort-keys-fix"],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "rules": {
+    "class-methods-use-this": "off",
+    "no-param-reassign": "off",
+    "camelcase": "off",
+    "no-unused-vars": ["error", {"argsIgnorePattern": "next"}],
+    "no-console": "off",
+    "no-shadow": "warn",
+    "sort-keys-fix/sort-keys-fix": "off"
+  }
+}
