@@ -44,7 +44,7 @@ const logErrorConnecting = (err, client) => {
   console.log('#### client -> ', client);
 };
 
-MongoClient.connect(mongoUri, (err, client) => {
+MongoClient.connect(mongoUri, {useNewUrlParser: true, useUnifiedTopology: true}, (err, client) => {
   console.log('#### connected ');
 
   const db = client && client.db('smil32-db');
