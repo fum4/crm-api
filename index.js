@@ -64,7 +64,7 @@ app.post('/auth', (request, response) => {
       app.get('/clients', (req, res) => {
         clientsCollection
           .find()
-          .sort({name: 1, surname: 1})
+          .sort({ name: 1, surname: 1 })
           .toArray()
           .then((results) => success(res, results))
           .catch((err) => error(err));
@@ -79,7 +79,7 @@ app.post('/auth', (request, response) => {
 
       app.delete('/client', (req, res) => {
         clientsCollection
-          .deleteOne({_id: req.body.clientId})
+          .deleteOne({ _id: req.body.clientId })
           .then((results) => success(res, results))
           .catch((err) => error(err));
       });
@@ -87,9 +87,9 @@ app.post('/auth', (request, response) => {
       app.get('/appointments', (req, res) => {
         clientsCollection
           .aggregate([
-            {$unwind: '$appointments'},
-            {$sort: {'appointments.date': 1}},
-            {$project: {appointment: '$appointments', name: 1, surname: 1}}
+            { $unwind: '$appointments' },
+            { $sort: { 'appointments.date': 1 } },
+            { $project: { appointment: '$appointments', name: 1, surname: 1 } }
           ])
           .toArray()
           .then((results) => success(res, results))
@@ -97,8 +97,8 @@ app.post('/auth', (request, response) => {
       });
 
       app.post('/appointment', (req, res) => {
-        const {client, appointment, control, date, price, technician, treatment} = req.body;
-        const query = {_id: client};
+        const { client, appointment, control, date, price, technician, treatment } = req.body;
+        const query = { _id: client };
         const update = {
           $push: {
             appointments: {
