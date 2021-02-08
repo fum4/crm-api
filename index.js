@@ -1,7 +1,6 @@
 const express = require('express');
-const { MongoClient } = require('mongodb');
 const cors = require('cors');
-
+const { MongoClient, ObjectId } = require('mongodb');
 
 const success = (res, payload) => {
   const {matchedCount, modifiedCount} = res;
@@ -79,7 +78,7 @@ app.post('/auth', (request, response) => {
 
       app.delete('/client', (req, res) => {
         clientsCollection
-          .deleteOne({ _id: req.body.clientId })
+          .deleteOne({ _id: ObjectId(req.body.clientId) })
           .then((results) => success(res, results))
           .catch((err) => error(err));
       });
@@ -98,7 +97,7 @@ app.post('/auth', (request, response) => {
 
       app.post('/appointment', (req, res) => {
         const { client, appointment, control, date, price, technician, treatment } = req.body;
-        const query = { _id: client };
+        const query = { _id: ObjectId(client) };
         const update = {
           $push: {
             appointments: {
