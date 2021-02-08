@@ -3,7 +3,7 @@ const cors = require('cors');
 const { MongoClient, ObjectId } = require('mongodb');
 
 const success = (res, payload) => {
-  const {matchedCount, modifiedCount} = res;
+  const { matchedCount, modifiedCount } = res;
 
   console.log('#### success ::: matchedCount / modifiedCount : ', matchedCount, modifiedCount);
 
@@ -12,7 +12,7 @@ const success = (res, payload) => {
 };
 
 const error = (res, error) => {
-  const {matchedCount, modifiedCount} = res;
+  const { matchedCount, modifiedCount } = res;
 
   console.log('#### error ::: matchedCount / modifiedCount : ', matchedCount, modifiedCount);
   console.log('#### query response -> ', res);
@@ -26,9 +26,8 @@ const logErrorConnecting = (err, client) => {
   console.log('#### client -> ', client);
 };
 
-const buildMongoUri = (username, password) => {
-  return `mongodb+srv://${username}:${password}@cluster0.v48nx.mongodb.net/smil32-db?retryWrites=true&w=majority`;
-}
+const buildMongoUri = (username, password) =>
+  `mongodb+srv://${username}:${password}@cluster0.v48nx.mongodb.net/smil32-db?retryWrites=true&w=majority`;
 
 const app = express();
 const port = 3000;
@@ -154,7 +153,6 @@ app.post('/auth', (request, response) => {
     }
   });
 });
-
 
 app.listen(port, () => {
   console.log(`App listening at http://localhost:${port}`);
