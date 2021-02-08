@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ObjectId } = require('mongodb');
 
-const success = (res, payload) => {
+const successHandler = (res, payload) => {
   const { matchedCount, modifiedCount } = res;
 
   console.log('#### success ::: matchedCount / modifiedCount : ', matchedCount, modifiedCount);
@@ -11,12 +11,12 @@ const success = (res, payload) => {
   res.status(200);
 };
 
-const error = (res, error) => {
+const errorHandler = (res, err) => {
   const { matchedCount, modifiedCount } = res;
 
   console.log('#### error ::: matchedCount / modifiedCount : ', matchedCount, modifiedCount);
   console.log('#### query response -> ', res);
-  console.log('#### error -> ', error);
+  console.log('#### error -> ', err);
   res.status(500);
 };
 
@@ -49,109 +49,113 @@ app.post('/auth', (request, response) => {
   const { username, password } = request.body;
   const mongoUri = buildMongoUri(username, password);
 
-  MongoClient.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => {
-    console.log('#### connected ');
+  MongoClient.connect(
+    mongoUri,
+    { useNewUrlParser: true, useUnifiedTopology: true },
+    (error, clientResponse) => {
+      console.log('#### connected ');
 
-    success(response);
+      successHandler(response);
 
-    const db = client && client.db('smil32-db');
+      const db = clientResponse && clientResponse.db('smil32-db');
 
-    if (db) {
-      const clientsCollection = db.collection('clients');
+      if (db) {
+        const clientsCollection = db.collection('clients');
 
-      app.get('/clients', (req, res) => {
-        clientsCollection
-          .find()
-          .sort({ name: 1, surname: 1 })
-          .toArray()
-          .then((results) => success(res, results))
-          .catch((err) => error(err));
-      });
+        app.get('/clients', (req, res) => {
+          clientsCollection
+            .find()
+            .sort({ name: 1, surname: 1 })
+            .toArray()
+            .then((results) => successHandler(res, results))
+            .catch((err) => errorHandler(err));
+        });
 
-      app.post('/client', (req, res) => {
-        clientsCollection
-          .insertOne(req.body)
-          .then((results) => success(res, results))
-          .catch((err) => error(err));
-      });
+        app.post('/client', (req, res) => {
+          clientsCollection
+            .insertOne(req.body)
+            .then((results) => successHandler(res, results))
+            .catch((err) => errorHandler(err));
+        });
 
-      app.delete('/client', (req, res) => {
-        clientsCollection
-          .deleteOne({ _id: ObjectId(req.body.clientId) })
-          .then((results) => success(res, results))
-          .catch((err) => error(err));
-      });
+        app.delete('/client', (req, res) => {
+          clientsCollection
+            .deleteOne({ _id: ObjectId(req.body.clientId) })
+            .then((results) => successHandler(res, results))
+            .catch((err) => errorHandler(err));
+        });
 
-      app.get('/appointments', (req, res) => {
-        clientsCollection
-          .aggregate([
-            { $unwind: '$appointments' },
-            { $sort: { 'appointments.date': 1 } },
-            { $project: { appointment: '$appointments', name: 1, surname: 1 } }
-          ])
-          .toArray()
-          .then((results) => success(res, results))
-          .catch((err) => error(err));
-      });
+        app.get('/appointments', (req, res) => {
+          clientsCollection
+            .aggregate([
+              { $unwind: '$appointments' },
+              { $sort: { 'appointments.date': 1 } },
+              { $project: { appointment: '$appointments', name: 1, surname: 1 } }
+            ])
+            .toArray()
+            .then((results) => successHandler(res, results))
+            .catch((err) => errorHandler(err));
+        });
 
-      app.post('/appointment', (req, res) => {
-        const { client, appointment, control, date, price, technician, treatment } = req.body;
-        const query = { _id: ObjectId(client) };
-        const update = {
-          $push: {
-            appointments: {
-              appointment,
-              control,
-              date,
-              price,
-              technician,
-              treatment
+        app.post('/appointment', (req, res) => {
+          const { client, appointment, control, date, price, technician, treatment } = req.body;
+          const query = { _id: ObjectId(client) };
+          const update = {
+            $push: {
+              appointments: {
+                appointment,
+                control,
+                date,
+                price,
+                technician,
+                treatment
+              }
             }
-          }
-        };
+          };
 
-        clientsCollection
-          .updateOne(query, update)
-          .then((results) => success(res, results))
-          .catch((err) => error(err));
-      });
+          clientsCollection
+            .updateOne(query, update)
+            .then((results) => successHandler(res, results))
+            .catch((err) => errorHandler(err));
+        });
 
-      app.put('/appointment/:id', (req, res) => {
-        const { appointment, control, date, price, technician, treatment } = req.body;
-        const { id } = req.params;
-        const query = { 'appointments.date': id };
-        const options = { arrayFilters: [{ 'element.date': id }] };
-        const update = {
-          $set: {
-            'appointments.$[element].appointment': appointment,
-            'appointments.$[element].control': control,
-            'appointments.$[element].date': date,
-            'appointments.$[element].price': price,
-            'appointments.$[element].technician': technician,
-            'appointments.$[element].treatment': treatment
-          }
-        };
+        app.put('/appointment/:id', (req, res) => {
+          const { appointment, control, date, price, technician, treatment } = req.body;
+          const { id } = req.params;
+          const query = { 'appointments.date': id };
+          const options = { arrayFilters: [{ 'element.date': id }] };
+          const update = {
+            $set: {
+              'appointments.$[element].appointment': appointment,
+              'appointments.$[element].control': control,
+              'appointments.$[element].date': date,
+              'appointments.$[element].price': price,
+              'appointments.$[element].technician': technician,
+              'appointments.$[element].treatment': treatment
+            }
+          };
 
-        clientsCollection
-          .updateOne(query, update, options)
-          .then((results) => success(res, results))
-          .catch((err) => error(err));
-      });
+          clientsCollection
+            .updateOne(query, update, options)
+            .then((results) => successHandler(res, results))
+            .catch((err) => errorHandler(err));
+        });
 
-      app.delete('/appointment/:date', (req, res) => {
-        const { date } = req.params;
-        const query = { 'appointments.date': date };
-        const update = { $pull: { appointments: { date } } };
+        app.delete('/appointment/:date', (req, res) => {
+          const { date } = req.params;
+          const query = { 'appointments.date': date };
+          const update = { $pull: { appointments: { date } } };
 
-        clientsCollection
-          .updateOne(query, update)
-          .then((results) => success(res, results))
-          .catch((err) => error(err));
-      });
-    } else {
-      logErrorConnecting(err, client);
+          clientsCollection
+            .updateOne(query, update)
+            .then((results) => successHandler(res, results))
+            .catch((err) => errorHandler(err));
+        });
+      } else {
+        logErrorConnecting(error, clientResponse);
+      }
     }
-  });
+  );
 });
 
 app.listen(port, () => {
