@@ -47,120 +47,120 @@ app.use((req, res, next) => {
   next();
 });
 
-const mongoUri = `mongodb+srv://fum4:1b2duj35@cluster0.v48nx.mongodb.net/smil32-db?retryWrites=true&w=majority`;
+app.post('/auth', (request, response) => {
+  const { username, password } = request.body;
+  const mongoUri = buildMongoUri(username, password);
 
-// app.post('/auth', (request, response) => {
-//   const { username, password } = request.body;
-//   const mongoUri = buildMongoUri(username, password);
+  MongoClient.connect(
+    mongoUri,
+    { useNewUrlParser: true, useUnifiedTopology: true },
+    (error, clientResponse) => {
+      console.log('#### connected ');
 
-MongoClient.connect(
-  mongoUri,
-  { useNewUrlParser: true, useUnifiedTopology: true },
-  (error, clientResponse) => {
-    console.log('#### connected ');
+      successHandler(response);
 
-    // successHandler(response);
+      const db = clientResponse && clientResponse.db('smil32-db');
 
-    const db = clientResponse && clientResponse.db('smil32-db');
+      if (db) {
+        const clientsCollection = db.collection('clients');
 
-    if (db) {
-      const clientsCollection = db.collection('clients');
+        app.get('/clients', (req, res) => {
+          clientsCollection
+            .find()
+            .sort({ name: 1, surname: 1 })
+            .toArray()
+            .then((results) => successHandler(res, results))
+            .catch((err) => errorHandler(err));
+        });
 
-      app.get('/clients', (req, res) => {
-        clientsCollection
-          .find()
-          .sort({ name: 1, surname: 1 })
-          .toArray()
-          .then((results) => successHandler(res, results))
-          .catch((err) => errorHandler(err));
-      });
+        app.post('/client', (req, res) => {
+          clientsCollection
+            .insertOne(req.body)
+            .then((results) => successHandler(res, results))
+            .catch((err) => errorHandler(err));
+        });
 
-      app.post('/client', (req, res) => {
-        clientsCollection
-          .insertOne(req.body)
-          .then((results) => successHandler(res, results))
-          .catch((err) => errorHandler(err));
-      });
+        app.delete('/client', (req, res) => {
+          clientsCollection
+            .deleteOne({ _id: ObjectId(req.body.clientId) })
+            .then((results) => successHandler(res, results))
+            .catch((err) => errorHandler(err));
+        });
 
-      app.delete('/client', (req, res) => {
-        clientsCollection
-          .deleteOne({ _id: ObjectId(req.body.clientId) })
-          .then((results) => successHandler(res, results))
-          .catch((err) => errorHandler(err));
-      });
+        app.get('/appointments', (req, res) => {
+          clientsCollection
+            .aggregate([
+              { $unwind: '$appointments' },
+              { $sort: { 'appointments.date': 1 } },
+              { $project: { appointment: '$appointments', name: 1, surname: 1 } }
+            ])
+            .toArray()
+            .then((results) => successHandler(res, results))
+            .catch((err) => errorHandler(err));
+        });
 
-      app.get('/appointments', (req, res) => {
-        clientsCollection
-          .aggregate([
-            { $unwind: '$appointments' },
-            { $sort: { 'appointments.date': 1 } },
-            { $project: { appointment: '$appointments', name: 1, surname: 1 } }
-          ])
-          .toArray()
-          .then((results) => successHandler(res, results))
-          .catch((err) => errorHandler(err));
-      });
+        app.post('/appointment', (req, res) => {
+          const { client, appointment, control, date, price, technician, treatment } = req.body;
 
-      app.post('/appointment', (req, res) => {
-        const { appointment, control, date, price, technician, treatment } = req.body;
-        const query = { _id: ObjectId(generateID()) };
-        const update = {
-          $push: {
-            appointments: {
-              appointment,
-              control,
-              date,
-              price,
-              technician,
-              treatment
+          const query = { _id: ObjectId(client) };
+          const update = {
+            $push: {
+              appointments: {
+                _id: generateID(),
+                appointment,
+                control,
+                date,
+                price,
+                technician,
+                treatment
+              }
             }
-          }
-        };
+          };
 
-        clientsCollection
-          .updateOne(query, update)
-          .then((results) => successHandler(res, results))
-          .catch((err) => errorHandler(err));
-      });
+          clientsCollection
+            .updateOne(query, update)
+            .then((results) => successHandler(res, results))
+            .catch((err) => errorHandler(err));
+        });
 
-      app.put('/appointment/:id', (req, res) => {
-        const { appointment, control, date, price, technician, treatment } = req.body;
-        const { id } = req.params;
-        const query = { 'appointments.date': id };
-        const options = { arrayFilters: [{ 'element.date': id }] };
-        const update = {
-          $set: {
-            'appointments.$[element].appointment': appointment,
-            'appointments.$[element].control': control,
-            'appointments.$[element].date': date,
-            'appointments.$[element].price': price,
-            'appointments.$[element].technician': technician,
-            'appointments.$[element].treatment': treatment
-          }
-        };
+        app.put('/appointment/:id', (req, res) => {
+          const { appointment, control, date, price, technician, treatment } = req.body;
+          const { id } = req.params;
+          const query = { 'appointments._id': id };
+          const options = { arrayFilters: [{ 'element._id': id }] };
+          const update = {
+            $set: {
+              'appointments.$[element].appointment': appointment,
+              'appointments.$[element].control': control,
+              'appointments.$[element].date': date,
+              'appointments.$[element].price': price,
+              'appointments.$[element].technician': technician,
+              'appointments.$[element].treatment': treatment
+            }
+          };
 
-        clientsCollection
-          .updateOne(query, update, options)
-          .then((results) => successHandler(res, results))
-          .catch((err) => errorHandler(err));
-      });
+          clientsCollection
+            .updateOne(query, update, options)
+            .then((results) => successHandler(res, results))
+            .catch((err) => errorHandler(err));
+        });
 
-      app.delete('/appointment/:date', (req, res) => {
-        const { date } = req.params;
-        const query = { 'appointments.date': date };
-        const update = { $pull: { appointments: { date } } };
+        app.delete('/appointment/:date', (req, res) => {
+          const { date } = req.params;
+          const query = { 'appointments.date': date };
+          const update = { $pull: { appointments: { date } } };
 
-        clientsCollection
-          .updateOne(query, update)
-          .then((results) => successHandler(res, results))
-          .catch((err) => errorHandler(err));
-      });
-    } else {
-      logErrorConnecting(error, clientResponse);
+          clientsCollection
+            .updateOne(query, update)
+            .then((results) => successHandler(res, results))
+            .catch((err) => errorHandler(err));
+        });
+      } else {
+        logErrorConnecting(error, clientResponse);
+      }
     }
-  }
-);
-// });
+  );
+});
 
 app.listen(port, () => {
   console.log(`App listening at http://localhost:${port}`);
