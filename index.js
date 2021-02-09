@@ -66,7 +66,7 @@ app.post('/auth', (request, response) => {
 
         app.get('/status', (req, res) => {
           if (db.serverConfig.isConnected()) {
-            success(res);
+            successHandler(res);
           }
         });
 
