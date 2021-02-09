@@ -64,6 +64,12 @@ app.post('/auth', (request, response) => {
       if (db) {
         const clientsCollection = db.collection('clients');
 
+        app.get('/status', (req, res) => {
+          if (db.serverConfig.isConnected()) {
+            success(res);
+          }
+        });
+
         app.get('/clients', (req, res) => {
           clientsCollection
             .find()
