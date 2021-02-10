@@ -151,10 +151,10 @@ app.post('/auth', (request, response) => {
             .catch((err) => errorHandler(err));
         });
 
-        app.delete('/appointment/:date', (req, res) => {
-          const { date } = req.params;
-          const query = { 'appointments.date': date };
-          const update = { $pull: { appointments: { date } } };
+        app.delete('/appointment/:id', (req, res) => {
+          const { id } = req.params;
+          const query = { 'appointments._id': id };
+          const update = { $pull: { appointments: { _id: id } } };
 
           clientsCollection
             .updateOne(query, update)
