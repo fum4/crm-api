@@ -2,27 +2,20 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ObjectId } = require('mongodb');
 
-const generateID = () => (Date.now().toString(36) + Math.random().toString(36).substr(2, 5)).toUpperCase();
+const generateId = () => (Date.now().toString(36) + Math.random().toString(36).substr(2, 5)).toUpperCase();
 
 const successHandler = (res, payload) => {
-  const { matchedCount, modifiedCount } = res;
-
-  console.log('#### success ::: matchedCount / modifiedCount : ', matchedCount, modifiedCount);
-
   res.json(payload);
   res.status(200);
 };
 
 const errorHandler = (res, err) => {
-  const { matchedCount, modifiedCount } = res;
-
-  console.log('#### error ::: matchedCount / modifiedCount : ', matchedCount, modifiedCount);
   console.log('#### query response -> ', res);
   console.log('#### error -> ', err);
   res.status(500);
 };
 
-const logErrorConnecting = (err, client) => {
+const logConnectingError = (err, client) => {
   console.log('#### error connecting to db', err, client);
   console.log('#### error -> ', err);
   console.log('#### client -> ', client);
@@ -105,14 +98,40 @@ app.post('/auth', (request, response) => {
             .catch((err) => errorHandler(err));
         });
 
-        app.post('/appointment', (req, res) => {
-          const { client, appointment, control, date, price, technician, treatment } = req.body;
+        app.post('/appointment/:clientId?', (req, res) => {
+          const { appointment, control, date, price, technician, treatment } = req.body;
+          const clientId = req.params && req.params.clientId;
 
-          const query = { _id: ObjectId(client) };
-          const update = {
-            $push: {
-              appointments: {
-                _id: generateID(),
+          if (clientId) {
+            const query = { _id: ObjectId(clientId) };
+            const update = {
+              $push: {
+                appointments: {
+                  _id: generateId(),
+                  appointment,
+                  control,
+                  date,
+                  price,
+                  technician,
+                  treatment
+                }
+              }
+            };
+
+            return clientsCollection
+              .updateOne(query, update)
+              .then((results) => successHandler(res, results))
+              .catch((err) => errorHandler(err));
+          }
+
+          const { name, surname, phone, address } = req.body;
+          const clientWithAppointment = {
+            name,
+            surname,
+            phone,
+            address,
+            appointments: [
+              {
                 appointment,
                 control,
                 date,
@@ -120,16 +139,16 @@ app.post('/auth', (request, response) => {
                 technician,
                 treatment
               }
-            }
-          };
+            ]
+          }
 
-          clientsCollection
-            .updateOne(query, update)
+          return clientsCollection
+            .insertOne(clientWithAppointment)
             .then((results) => successHandler(res, results))
             .catch((err) => errorHandler(err));
         });
 
-        app.put('/appointment/:id', (req, res) => {
+        app.put('/appointment/', (req, res) => {
           const { appointment, control, date, price, technician, treatment } = req.body;
           const { id } = req.params;
           const query = { 'appointments._id': id };
@@ -162,7 +181,7 @@ app.post('/auth', (request, response) => {
             .catch((err) => errorHandler(err));
         });
       } else {
-        logErrorConnecting(error, clientResponse);
+        logConnectingError(error, clientResponse);
       }
     }
   );
