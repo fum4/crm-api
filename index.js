@@ -1,51 +1,18 @@
-const express = require('express');
-const cors = require('cors');
+import { buildMongoUri, successHandler, errorHandler, generateId, logErrorConnecting } from './utils';
+import setupAppMiddleware from './src/middleware/app';
+
 const { MongoClient, ObjectId } = require('mongodb');
-
-const generateID = () => (Date.now().toString(36) + Math.random().toString(36).substr(2, 5)).toUpperCase();
-
-const successHandler = (res, payload) => {
-  const { matchedCount, modifiedCount } = res;
-
-  console.log('#### success ::: matchedCount / modifiedCount : ', matchedCount, modifiedCount);
-
-  res.json(payload);
-  res.status(200);
-};
-
-const errorHandler = (res, err) => {
-  const { matchedCount, modifiedCount } = res;
-
-  console.log('#### error ::: matchedCount / modifiedCount : ', matchedCount, modifiedCount);
-  console.log('#### query response -> ', res);
-  console.log('#### error -> ', err);
-  res.status(500);
-};
-
-const logErrorConnecting = (err, client) => {
-  console.log('#### error connecting to db', err, client);
-  console.log('#### error -> ', err);
-  console.log('#### client -> ', client);
-};
-
-const buildMongoUri = (username, password) =>
-  `mongodb+srv://${username}:${password}@cluster0.v48nx.mongodb.net/smil32-db?retryWrites=true&w=majority`;
-
+const mongoose = require('mongoose');
+const express = require('express');
 const app = express();
 const port = 3000;
-const corsOptions = { origin: false };
 
-app.use(cors(corsOptions));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-  res.setHeader('Access-Control-Allow-Credentials', true);
+const username = 'fum4';
+const password = '1b2duj35';
 
-  next();
-});
+// mongoose.connect(buildMongoUri({ username, password }), {useNewUrlParser: true, useUnifiedTopology: true});
+
+setupAppMiddleware(app);
 
 app.post('/auth', (request, response) => {
   const { username, password } = request.body;
@@ -59,7 +26,7 @@ app.post('/auth', (request, response) => {
 
       successHandler(response);
 
-      const db = clientResponse && clientResponse.db('smil32-db');
+      const db = clientResponse?.db('smil32-db');
 
       if (db) {
         const clientsCollection = db.collection('clients');
@@ -68,6 +35,12 @@ app.post('/auth', (request, response) => {
           if (db.serverConfig.isConnected()) {
             successHandler(res);
           }
+        });
+
+        app.post('/disconnect', (req, res) => {
+          clientResponse.close().then(() => {
+            successHandler(res);
+          });
         });
 
         app.get('/clients', (req, res) => {
@@ -112,7 +85,7 @@ app.post('/auth', (request, response) => {
           const update = {
             $push: {
               appointments: {
-                _id: generateID(),
+                _id: generateId(),
                 appointment,
                 control,
                 date,
