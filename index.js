@@ -1,6 +1,7 @@
 import express, { urlencoded, json } from 'express';
-import cors from 'cors';
 import { MongoClient, ObjectId } from 'mongodb';
+import cors from 'cors';
+import 'dotenv/config';
 
 const generateId = () => (Date.now().toString(36) + Math.random().toString(36).substr(2, 5)).toUpperCase();
 
@@ -25,7 +26,7 @@ const buildMongoUri = (username, password) =>
   `mongodb+srv://${username}:${password}@cluster0.v48nx.mongodb.net/smil32-db?retryWrites=true&w=majority`;
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT;
 const corsOptions = { origin: false };
 
 app.use(cors(corsOptions));
@@ -140,7 +141,7 @@ app.post('/auth', (request, response) => {
                 treatment
               }
             ]
-          }
+          };
 
           return clientsCollection
             .insertOne(clientWithAppointment)
