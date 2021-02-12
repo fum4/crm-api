@@ -1,12 +1,13 @@
-const express = require('express');
-const cors = require('cors');
-
+import { urlencoded, json } from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
 const setupAppMiddleware = (app) => {
   const corsOptions = { origin: false };
 
   app.use(cors(corsOptions));
-  app.use(express.urlencoded({ extended: true }));
-  app.use(express.json());
+  app.use(urlencoded({ extended: true }));
+  app.use(json());
+  app.use(cookieParser());
   app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -15,6 +16,6 @@ const setupAppMiddleware = (app) => {
 
     next();
   });
-}
+};
 
 export default setupAppMiddleware;

@@ -1,8 +1,8 @@
 import express, { urlencoded, json } from 'express';
 import { MongoClient, ObjectId } from 'mongodb';
 import mongoose from 'mongoose'
-import cookieParser from 'cookie-parser';
-import cors from 'cors';
+
+
 import 'dotenv/config';
 import { buildMongoUri, successHandler, errorHandler, generateId, logErrorConnecting } from './utils';
 import setupAppMiddleware from './src/middleware/app';
