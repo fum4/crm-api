@@ -1,14 +1,36 @@
+import express, { urlencoded, json } from 'express';
+import { MongoClient, ObjectId } from 'mongodb';
+import mongoose from 'mongoose'
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import 'dotenv/config';
 import { buildMongoUri, successHandler, errorHandler, generateId, logErrorConnecting } from './utils';
 import setupAppMiddleware from './src/middleware/app';
 
-const { MongoClient, ObjectId } = require('mongodb');
-const mongoose = require('mongoose');
-const express = require('express');
 const app = express();
 const port = 3000;
 
 const username = 'fum4';
 const password = '1b2duj35';
+
+const generateId = () => (Date.now().toString(36) + Math.random().toString(36).substr(2, 5)).toUpperCase();
+
+const successHandler = (res, payload) => {
+  res.json(payload);
+  res.status(200);
+};
+
+const errorHandler = (res, err) => {
+  console.log('#### query response -> ', res);
+  console.log('#### error -> ', err);
+  res.status(500);
+};
+
+const logConnectingError = (err, client) => {
+  console.log('#### error connecting to db', err, client);
+  console.log('#### error -> ', err);
+  console.log('#### client -> ', client);
+};
 
 // mongoose.connect(buildMongoUri({ username, password }), {useNewUrlParser: true, useUnifiedTopology: true});
 
@@ -98,21 +120,29 @@ app.post('/auth', (request, response) => {
               }
             };
 
-            // const query = { _id: ObjectId(client) };
-            // const update = {
-            //   $push: {
-            //     appointments: {
-            //       _id: generateId(),
-            //       appointment,
-            //       control,
-            //       date,
-            //       price,
-            //       technician,
-            //       treatment
-            //     }
-            //   }
-            // };
+            return clientsCollection
+              .updateOne(query, update)
+              .then((results) => successHandler(res, results))
+              .catch((err) => errorHandler(err));
           }
+
+          const { name, surname, phone, address } = req.body;
+          const clientWithAppointment = {
+            name,
+            surname,
+            phone,
+            address,
+            appointments: [
+              {
+                appointment,
+                control,
+                date,
+                price,
+                technician,
+                treatment
+              }
+            ]
+          };
 
           return clientsCollection
             .insertOne(clientWithAppointment)
