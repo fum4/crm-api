@@ -1,7 +1,8 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+import { Schema, model } from 'mongoose';
+import { sign, verify } from 'jsonwebtoken';
+import { genSalt, hash as _hash, compare } from 'bcrypt';
+
+
 const SALT = 10;
 
 const userSchema = new Schema({
@@ -11,7 +12,7 @@ const userSchema = new Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: true
   }
 });
 
@@ -19,16 +20,17 @@ userSchema.index({
   username: 1
 });
 
-userSchema.pre('save', function(next) {
+userSchema.pre('save', function (next) {
   const user = this;
 
-  if (user.isModified('password')) { //checking if password field is available and modified
-    bcrypt.genSalt(SALT, function(err, salt) {
+  if (user.isModified('password')) {
+    //checking if password field is available and modified
+    genSalt(SALT, function (err, salt) {
       if (err) {
         return next(err);
       }
 
-      bcrypt.hash(user.password, salt, function(err, hash) {
+      _hash(user.password, salt, function (err, hash) {
         if (err) {
           return next(err);
         }
@@ -43,20 +45,20 @@ userSchema.pre('save', function(next) {
 });
 
 //for comparing the users entered password with database during login
-userSchema.methods.comparePassword = function(candidatePassword, callBack) {
-  bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
+userSchema.methods.comparePassword = function (candidatePassword, callBack) {
+  compare(candidatePassword, this.password, function (err, isMatch) {
     if (err) {
       return callBack(err);
     }
 
     callBack(null, isMatch);
   });
-}
+};
 //for generating token when loggedin
-userSchema.methods.generateToken = function(callBack) {
-  this.token = jwt.sign(this._id.toHexString(), process.env.SECRETE);
+userSchema.methods.generateToken = function (callBack) {
+  this.token = sign(this._id.toHexString(), process.env.SECRETE);
 
-  this.save(function(err, user) {
+  this.save(function (err, user) {
     if (err) {
       return callBack(err);
     }
@@ -66,11 +68,12 @@ userSchema.methods.generateToken = function(callBack) {
 };
 
 //validating token for auth routes middleware
-userSchema.statics.findByToken = function(token, callBack) {
+userSchema.statics.findByToken = function (token, callBack) {
   const user = this;
 
-  jwt.verify(token, process.env.SECRETE, function(err, decode) { //this decode must give user_id if token is valid .ie decode=user_id
-    user.findOne({ '_id': decode, 'token': token }, function(err, user) {
+  verify(token, process.env.SECRETE, function (err, decode) {
+    //this decode must give user_id if token is valid .ie decode=user_id
+    user.findOne({ _id: decode, token: token }, function (err, user) {
       if (err) {
         return callBack(err);
       }
@@ -80,6 +83,6 @@ userSchema.statics.findByToken = function(token, callBack) {
   });
 };
 
-const User = mongoose.model('User', userSchema);
+const User = model('User', userSchema);
 
-module.exports = { User }
+export default { User };

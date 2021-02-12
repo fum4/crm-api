@@ -1,7 +1,4 @@
-import { appointmentSchema } from './appointment';
-
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import { Schema, model } from 'mongoose';
 
 const clientSchema = new Schema({
   _id: {
@@ -14,7 +11,7 @@ const clientSchema = new Schema({
   },
   surname: {
     type: String,
-    required: true,
+    required: true
   },
   address: {
     type: String,
@@ -22,13 +19,13 @@ const clientSchema = new Schema({
   },
   phone: {
     type: String,
-    required: true,
-  },
-  appointments: [appointmentSchema]
+    required: true
+  }
 });
 
 clientSchema.index({
-  _id: 1
+  surname: 1,
+  name: 1
 });
 
-module.exports = mongoose.model('Client', clientSchema);
+export default model('Client', clientSchema);
