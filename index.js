@@ -1,5 +1,6 @@
 import express, { urlencoded, json } from 'express';
 import { MongoClient, ObjectId } from 'mongodb';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import 'dotenv/config';
 
@@ -26,6 +27,7 @@ const buildMongoUri = (username, password) =>
   `mongodb+srv://${username}:${password}@cluster0.v48nx.mongodb.net/smil32-db?retryWrites=true&w=majority`;
 
 const app = express();
+app.use(cookieParser());
 const port = process.env.PORT;
 const corsOptions = { origin: false };
 
