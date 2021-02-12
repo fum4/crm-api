@@ -78,31 +78,49 @@ app.post('/auth', (request, response) => {
             .catch((err) => errorHandler(err));
         });
 
-        app.post('/appointment', (req, res) => {
-          const { client, appointment, control, date, price, technician, treatment } = req.body;
+        app.post('/appointment/:clientId?', (req, res) => {
+          const { appointment, control, date, price, technician, treatment } = req.body;
+          const clientId = req.params && req.params.clientId;
 
-          const query = { _id: ObjectId(client) };
-          const update = {
-            $push: {
-              appointments: {
-                _id: generateId(),
-                appointment,
-                control,
-                date,
-                price,
-                technician,
-                treatment
+          if (clientId) {
+            const query = { _id: ObjectId(clientId) };
+            const update = {
+              $push: {
+                appointments: {
+                  _id: generateId(),
+                  appointment,
+                  control,
+                  date,
+                  price,
+                  technician,
+                  treatment
+                }
               }
-            }
-          };
+            };
 
-          clientsCollection
-            .updateOne(query, update)
+            // const query = { _id: ObjectId(client) };
+            // const update = {
+            //   $push: {
+            //     appointments: {
+            //       _id: generateId(),
+            //       appointment,
+            //       control,
+            //       date,
+            //       price,
+            //       technician,
+            //       treatment
+            //     }
+            //   }
+            // };
+          }
+
+          return clientsCollection
+            .insertOne(clientWithAppointment)
             .then((results) => successHandler(res, results))
             .catch((err) => errorHandler(err));
         });
 
-        app.put('/appointment/:id', (req, res) => {
+        app.put('/appointment/', (req, res) => {
           const { appointment, control, date, price, technician, treatment } = req.body;
           const { id } = req.params;
           const query = { 'appointments._id': id };
@@ -124,10 +142,10 @@ app.post('/auth', (request, response) => {
             .catch((err) => errorHandler(err));
         });
 
-        app.delete('/appointment/:date', (req, res) => {
-          const { date } = req.params;
-          const query = { 'appointments.date': date };
-          const update = { $pull: { appointments: { date } } };
+        app.delete('/appointment/:id', (req, res) => {
+          const { id } = req.params;
+          const query = { 'appointments._id': id };
+          const update = { $pull: { appointments: { _id: id } } };
 
           clientsCollection
             .updateOne(query, update)
@@ -135,7 +153,7 @@ app.post('/auth', (request, response) => {
             .catch((err) => errorHandler(err));
         });
       } else {
-        logErrorConnecting(error, clientResponse);
+        logConnectingError(error, clientResponse);
       }
     }
   );
