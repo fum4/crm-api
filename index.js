@@ -101,7 +101,7 @@ connectDb().then(async () => {
       const update = {
         $push: {
           appointments: {
-            _id: ObjectId(generateId()),
+            _id: generateId(),
             appointment,
             control,
             date,
