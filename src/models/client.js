@@ -1,8 +1,8 @@
-import { Schema, model } from 'mongoose';
-
+import { Schema, model, Types } from 'mongoose';
+import Appointment from './appointment.js';
 const clientSchema = new Schema({
   _id: {
-    type: String,
+    type: Types.ObjectId,
     required: true
   },
   name: {
@@ -14,13 +14,14 @@ const clientSchema = new Schema({
     required: true
   },
   address: {
-    type: String,
-    required: true
+    type: String
+    // required: true
   },
   phone: {
     type: String,
     required: true
-  }
+  },
+  appointments: [Appointment.schema]
 });
 
 clientSchema.index({

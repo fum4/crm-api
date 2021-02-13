@@ -1,7 +1,6 @@
 import { Schema, model } from 'mongoose';
 import { sign, verify } from 'jsonwebtoken';
-import { genSalt, hash as _hash, compare } from 'bcrypt';
-
+import { genSalt, hash, compare } from 'bcrypt';
 
 const SALT = 10;
 
@@ -30,7 +29,7 @@ userSchema.pre('save', function (next) {
         return next(err);
       }
 
-      _hash(user.password, salt, function (err, hash) {
+      hash(user.password, salt, function (err, hash) {
         if (err) {
           return next(err);
         }
