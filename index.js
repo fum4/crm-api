@@ -39,7 +39,10 @@ connectDb().then(async () => {
 
   // merge
   app.post('/client', (req, res) => {
-    // OLD | MONGO DB VERSION
+    // OLD | MONGO DB VERSION |
+    // I THINK IT WAS WORKING WRONG ANYWAY, NOT ADDING THE APPOINTMENT IN THE ARRAY,
+    // BUT RATHER IN THE CLIENT'S BODY
+
     // models.Client.collection
     //   .insertOne(req.body)
     //   .then((results) => successHandler(res, results))
@@ -56,6 +59,7 @@ connectDb().then(async () => {
         surname,
         phone,
         address,
+        // If no appointment, it still adds a bullshit here. Needs validation if no appointment
         appointments: [
           { _id: ObjectId(), clientId, appointment, control, date, price, technician, treatment }
         ]
