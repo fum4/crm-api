@@ -10,7 +10,6 @@ const port = process.env.PORT;
 setupAppMiddleware(app);
 
 connectDb().then(async () => {
-
   app.listen(port, () => console.log(`Example app listening on port ${port}!`));
   app.post('/auth', (request, response) => {
     successHandler(response);
@@ -21,6 +20,8 @@ connectDb().then(async () => {
     // }
   });
 
+
+  // merge
   app.get('/clients', (req, res) => {
     models.Client.collection
       .find()
@@ -30,13 +31,21 @@ connectDb().then(async () => {
       .catch((err) => errorHandler(err));
   });
 
+
+  //nu merge, nu baga programare, dar clientul il baga
   app.post('/client', (req, res) => {
-    models.Client.collection
-      .insertOne(req.body)
-      .then((results) => successHandler(res, results))
-      .catch((err) => errorHandler(err));
+    console.log('/client body', req.body);
+    const { name, surname, phone, address } = req.body;
+    const { appointment, control, date, price, technician, treatment } = req.body;
+
+    // models.Client.collection
+    //   .insertOne(req.body)
+    //   .then((results) => successHandler(res, results))
+    //   .catch((err) => errorHandler(err));
   });
 
+
+  //neverificat
   app.delete('/client', (req, res) => {
     models.Client.collection
       .deleteOne({ _id: ObjectId(req.body.clientId) })
@@ -44,6 +53,8 @@ connectDb().then(async () => {
       .catch((err) => errorHandler(err));
   });
 
+
+  //merge
   app.get('/appointments', (req, res) => {
     models.Client.collection
       .aggregate([
@@ -56,6 +67,8 @@ connectDb().then(async () => {
       .catch((err) => errorHandler(err));
   });
 
+
+  //// merge doar fara ID
   app.post('/appointment/:clientId?', (req, res) => {
     const { appointment, control, date, price, technician, treatment } = req.body;
     const clientId = req.params && req.params.clientId;
@@ -65,7 +78,7 @@ connectDb().then(async () => {
       const update = {
         $push: {
           appointments: {
-            _id: generateId(),
+            _id: ObjectId(generateId()),
             appointment,
             control,
             date,
@@ -106,9 +119,11 @@ connectDb().then(async () => {
       .catch((err) => errorHandler(err));
   });
 
+
+  // nu merge
   app.put('/appointment/', (req, res) => {
     const { appointment, control, date, price, technician, treatment } = req.body;
-    const { id } = req.params;
+    const { id } = ObjectId(req.params);
     const query = { 'appointments._id': id };
     const options = { arrayFilters: [{ 'element._id': id }] };
     const update = {
@@ -128,8 +143,10 @@ connectDb().then(async () => {
       .catch((err) => errorHandler(err));
   });
 
+
+  // nu merge
   app.delete('/appointment/:id', (req, res) => {
-    const { id } = req.params;
+    const { id } = ObjectId(req.params);
     const query = { 'appointments._id': id };
     const update = { $pull: { appointments: { _id: id } } };
 
