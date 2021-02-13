@@ -3,35 +3,26 @@ import 'dotenv/config';
 import setupAppMiddleware from './src/middleware/app';
 import models, { connectDb } from './src/models';
 import { ObjectId } from 'bson';
-import { buildMongoUri, successHandler, errorHandler, generateId, logErrorConnecting } from './utils';
+import { successHandler, errorHandler, generateId, logErrorConnecting } from './utils';
 const app = express();
 const port = process.env.PORT;
 
 setupAppMiddleware(app);
 
 connectDb().then(async () => {
-  // const mongooseTest = async () => {
-  //   const clientTest = new models.Client({
-  //     _id: ObjectId(),
-  //     name: 'MongooseTest',
-  //     surname: 'MongooseTest Prenume',
-  //     phone: '07328382838'
-  //   });
-  //   await clientTest.save();
-  // };
-  // mongooseTest();
+
   app.listen(port, () => console.log(`Example app listening on port ${port}!`));
   app.post('/auth', (request, response) => {
     successHandler(response);
   });
   app.get('/status', (req, res) => {
-    if (db.serverConfig.isConnected()) {
-      successHandler(res);
-    }
+    // if (db.serverConfig.isConnected()) {
+    successHandler(res);
+    // }
   });
 
   app.get('/clients', (req, res) => {
-    clientsCollection
+    models.Client.collection
       .find()
       .sort({ name: 1, surname: 1 })
       .toArray()
@@ -40,21 +31,21 @@ connectDb().then(async () => {
   });
 
   app.post('/client', (req, res) => {
-    clientsCollection
+    models.Client.collection
       .insertOne(req.body)
       .then((results) => successHandler(res, results))
       .catch((err) => errorHandler(err));
   });
 
   app.delete('/client', (req, res) => {
-    clientsCollection
+    models.Client.collection
       .deleteOne({ _id: ObjectId(req.body.clientId) })
       .then((results) => successHandler(res, results))
       .catch((err) => errorHandler(err));
   });
 
   app.get('/appointments', (req, res) => {
-    clientsCollection
+    models.Client.collection
       .aggregate([
         { $unwind: '$appointments' },
         { $sort: { 'appointments.date': 1 } },
@@ -85,7 +76,7 @@ connectDb().then(async () => {
         }
       };
 
-      return clientsCollection
+      return models.Client.collection
         .updateOne(query, update)
         .then((results) => successHandler(res, results))
         .catch((err) => errorHandler(err));
@@ -109,7 +100,7 @@ connectDb().then(async () => {
       ]
     };
 
-    return clientsCollection
+    return models.Client.collection
       .insertOne(clientWithAppointment)
       .then((results) => successHandler(res, results))
       .catch((err) => errorHandler(err));
@@ -131,7 +122,7 @@ connectDb().then(async () => {
       }
     };
 
-    clientsCollection
+    models.Client.collection
       .updateOne(query, update, options)
       .then((results) => successHandler(res, results))
       .catch((err) => errorHandler(err));
@@ -142,7 +133,7 @@ connectDb().then(async () => {
     const query = { 'appointments._id': id };
     const update = { $pull: { appointments: { _id: id } } };
 
-    clientsCollection
+    models.Client.collection
       .updateOne(query, update)
       .then((results) => successHandler(res, results))
       .catch((err) => errorHandler(err));

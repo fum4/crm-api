@@ -84,4 +84,4 @@ userSchema.statics.findByToken = function (token, callBack) {
 
 const User = model('User', userSchema);
 
-export default { User };
+export default User;

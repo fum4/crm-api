@@ -29,4 +29,9 @@ clientSchema.index({
   name: 1
 });
 
-export default model('Client', clientSchema);
+clientSchema.pre('remove', function (next) {
+  this.model('Appointment').deleteMany({ clientId: this._id }, next);
+});
+
+const Client = model('Client', clientSchema);
+export default Client;

@@ -6,33 +6,35 @@ const appointmentSchema = new Schema({
     required: true
   },
   appointment: {
-    type: String,
+    type: String
     // required: true
   },
   treatment: {
-    type: String,
+    type: String
     // required: true
   },
   technician: {
-    type: String,
+    type: String
     // required: true
   },
   control: {
-    type: String,
+    type: String
     // required: true
   },
   price: {
-    type: String,
+    type: String
     // required: true
   },
   date: {
     type: Date,
     required: true
-  }
+  },
+  clientId: { type: Types.ObjectId, ref: 'Client' }
 });
 
 appointmentSchema.index({
   date: 1
 });
 
-export default model('Appointment', appointmentSchema);
+const Appointment = model('Appointment', appointmentSchema);
+export default Appointment;
