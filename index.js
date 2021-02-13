@@ -7,6 +7,13 @@ import { successHandler, errorHandler, generateId, logErrorConnecting } from './
 const app = express();
 const port = process.env.PORT;
 
+app.use((req, res, next) => {
+  req.context = {
+    models
+  };
+  next();
+});
+
 setupAppMiddleware(app);
 
 connectDb().then(async () => {
@@ -20,7 +27,6 @@ connectDb().then(async () => {
     // }
   });
 
-
   // merge
   app.get('/clients', (req, res) => {
     models.Client.collection
@@ -31,19 +37,34 @@ connectDb().then(async () => {
       .catch((err) => errorHandler(err));
   });
 
-
-  //nu merge, nu baga programare, dar clientul il baga
+  // merge
   app.post('/client', (req, res) => {
-    console.log('/client body', req.body);
-    const { name, surname, phone, address } = req.body;
-    const { appointment, control, date, price, technician, treatment } = req.body;
-
+    // OLD | MONGO DB VERSION
     // models.Client.collection
     //   .insertOne(req.body)
     //   .then((results) => successHandler(res, results))
     //   .catch((err) => errorHandler(err));
-  });
 
+    const { name, surname, phone, address } = req.body;
+    const { appointment, control, date, price, technician, treatment } = req.body;
+    const clientId = ObjectId();
+
+    const saveNewClient = async () => {
+      await models.Client.create({
+        _id: clientId,
+        name,
+        surname,
+        phone,
+        address,
+        appointments: [
+          { _id: ObjectId(), clientId, appointment, control, date, price, technician, treatment }
+        ]
+      });
+    };
+    saveNewClient()
+      .then(() => successHandler(res))
+      .catch((err) => errorHandler(err));
+  });
 
   //neverificat
   app.delete('/client', (req, res) => {
@@ -52,7 +73,6 @@ connectDb().then(async () => {
       .then((results) => successHandler(res, results))
       .catch((err) => errorHandler(err));
   });
-
 
   //merge
   app.get('/appointments', (req, res) => {
@@ -66,7 +86,6 @@ connectDb().then(async () => {
       .then((results) => successHandler(res, results))
       .catch((err) => errorHandler(err));
   });
-
 
   //// merge doar fara ID
   app.post('/appointment/:clientId?', (req, res) => {
@@ -119,7 +138,6 @@ connectDb().then(async () => {
       .catch((err) => errorHandler(err));
   });
 
-
   // nu merge
   app.put('/appointment/', (req, res) => {
     const { appointment, control, date, price, technician, treatment } = req.body;
@@ -142,7 +160,6 @@ connectDb().then(async () => {
       .then((results) => successHandler(res, results))
       .catch((err) => errorHandler(err));
   });
-
 
   // nu merge
   app.delete('/appointment/:id', (req, res) => {
