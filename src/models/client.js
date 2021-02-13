@@ -1,10 +1,6 @@
 import { Schema, model, Types } from 'mongoose';
 import Appointment from './appointment.js';
 const clientSchema = new Schema({
-  _id: {
-    type: Types.ObjectId,
-    required: true
-  },
   name: {
     type: String,
     required: true
@@ -27,10 +23,6 @@ const clientSchema = new Schema({
 clientSchema.index({
   surname: 1,
   name: 1
-});
-
-clientSchema.pre('remove', function (next) {
-  this.model('Appointment').deleteMany({ clientId: this._id }, next);
 });
 
 const Client = model('Client', clientSchema);

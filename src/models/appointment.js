@@ -1,10 +1,6 @@
 import { Schema, model, Types } from 'mongoose';
 
 const appointmentSchema = new Schema({
-  _id: {
-    type: Types.ObjectId,
-    required: true
-  },
   appointment: {
     type: String
     // required: true
@@ -28,8 +24,7 @@ const appointmentSchema = new Schema({
   date: {
     type: Date,
     required: true
-  },
-  clientId: { type: Types.ObjectId, ref: 'Client' }
+  }
 });
 
 appointmentSchema.index({
