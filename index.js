@@ -57,7 +57,7 @@ connectDb().then(async () => {
       phone,
       address,
       // If no appointment, it still adds a bullshit here. Needs validation if no appointment
-      appointments: [{ appointment, control, date, price, technician, treatment }]
+      appointments: [new models.Appointment({ appointment, control, date, price, technician, treatment })]
     })
       .then(() => successHandler(res))
       .catch((err) => errorHandler(err));
@@ -142,7 +142,7 @@ connectDb().then(async () => {
       phone,
       address,
       // If no appointment, it still adds a bullshit here. Needs validation if no appointment
-      appointments: [{ appointment, control, date, price, technician, treatment }]
+      appointments: [new models.Appointment({ appointment, control, date, price, technician, treatment })]
     })
       .then(() => successHandler(res))
       .catch((err) => errorHandler(err));
