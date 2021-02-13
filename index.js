@@ -50,22 +50,15 @@ connectDb().then(async () => {
 
     const { name, surname, phone, address } = req.body;
     const { appointment, control, date, price, technician, treatment } = req.body;
-    const clientId = ObjectId();
 
-    const saveNewClient = async () => {
-      await models.Client.create({
-        _id: clientId,
-        name,
-        surname,
-        phone,
-        address,
-        // If no appointment, it still adds a bullshit here. Needs validation if no appointment
-        appointments: [
-          { _id: ObjectId(), clientId, appointment, control, date, price, technician, treatment }
-        ]
-      });
-    };
-    saveNewClient()
+    models.Client.create({
+      name,
+      surname,
+      phone,
+      address,
+      // If no appointment, it still adds a bullshit here. Needs validation if no appointment
+      appointments: [{ appointment, control, date, price, technician, treatment }]
+    })
       .then(() => successHandler(res))
       .catch((err) => errorHandler(err));
   });
@@ -91,7 +84,7 @@ connectDb().then(async () => {
       .catch((err) => errorHandler(err));
   });
 
-  //// merge doar fara ID
+  //// merge
   app.post('/appointment/:clientId?', (req, res) => {
     const { appointment, control, date, price, technician, treatment } = req.body;
     const clientId = req.params && req.params.clientId;
@@ -119,33 +112,46 @@ connectDb().then(async () => {
     }
 
     const { name, surname, phone, address } = req.body;
-    const clientWithAppointment = {
+
+    // OLD | MONGO DB VERSION |
+    // const clientWithAppointment = {
+    //   name,
+    //   surname,
+    //   phone,
+    //   address,
+    //   appointments: [
+    //     {
+    //       appointment,
+    //       control,
+    //       date,
+    //       price,
+    //       technician,
+    //       treatment
+    //     }
+    //   ]
+    // };
+
+    // return models.Client.collection
+    //   .insertOne(clientWithAppointment)
+    //   .then((results) => successHandler(res, results))
+    //   .catch((err) => errorHandler(err));
+
+    models.Client.create({
       name,
       surname,
       phone,
       address,
-      appointments: [
-        {
-          appointment,
-          control,
-          date,
-          price,
-          technician,
-          treatment
-        }
-      ]
-    };
-
-    return models.Client.collection
-      .insertOne(clientWithAppointment)
-      .then((results) => successHandler(res, results))
+      // If no appointment, it still adds a bullshit here. Needs validation if no appointment
+      appointments: [{ appointment, control, date, price, technician, treatment }]
+    })
+      .then(() => successHandler(res))
       .catch((err) => errorHandler(err));
   });
 
-  // nu merge
-  app.put('/appointment/', (req, res) => {
+  // merge
+  app.put('/appointment/:id', (req, res) => {
     const { appointment, control, date, price, technician, treatment } = req.body;
-    const { id } = ObjectId(req.params);
+    const { id } = req.params;
     const query = { 'appointments._id': id };
     const options = { arrayFilters: [{ 'element._id': id }] };
     const update = {
@@ -165,9 +171,9 @@ connectDb().then(async () => {
       .catch((err) => errorHandler(err));
   });
 
-  // nu merge
+  // merge
   app.delete('/appointment/:id', (req, res) => {
-    const { id } = ObjectId(req.params);
+    const { id } = req.params;
     const query = { 'appointments._id': id };
     const update = { $pull: { appointments: { _id: id } } };
 
