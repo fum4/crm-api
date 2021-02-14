@@ -21,8 +21,8 @@ const clientSchema = new Schema({
 });
 
 clientSchema.index({
-  surname: 1,
-  name: 1
+  name: 1,
+  surname: 1
 });
 
 const Client = model('Client', clientSchema);

@@ -103,74 +103,55 @@ connectDb().then(async () => {
       .catch((err) => errorHandler(err));
   });
 
-  //// merge
+  //// merge brici
   app.post('/appointment/:clientId?', (req, res) => {
+    const { name, surname, phone, address } = req.body;
     const { appointment, control, date, price, technician, treatment } = req.body;
     const clientId = req.params && req.params.clientId;
 
-    if (clientId) {
-      const query = { _id: ObjectId(clientId) };
-      const update = {
-        $push: {
-          appointments: {
-            _id: generateId(),
-            appointment,
-            control,
-            date,
-            price,
-            technician,
-            treatment
-          }
+    const newAppointment = new models.Appointment({
+      appointment,
+      control,
+      date,
+      price,
+      technician,
+      treatment
+    });
+
+    newAppointment.validate((err) => {
+      if (err) {
+        errorHandler(err);
+      } else {
+        if (clientId) {
+          const query = { _id: ObjectId(clientId) };
+          const update = { $push: { appointments: newAppointment } };
+
+          return models.Client.collection
+            .updateOne(query, update)
+            .then((results) => successHandler(res, results))
+            .catch((err) => errorHandler(err));
         }
-      };
 
-      return models.Client.collection
-        .updateOne(query, update)
-        .then((results) => successHandler(res, results))
-        .catch((err) => errorHandler(err));
-    }
+        const appointments = [newAppointment];
+        const newClient = {
+          name,
+          surname,
+          phone,
+          address,
+          appointments
+        };
 
-    const { name, surname, phone, address } = req.body;
-
-    // OLD | MONGO DB VERSION |
-    // const clientWithAppointment = {
-    //   name,
-    //   surname,
-    //   phone,
-    //   address,
-    //   appointments: [
-    //     {
-    //       appointment,
-    //       control,
-    //       date,
-    //       price,
-    //       technician,
-    //       treatment
-    //     }
-    //   ]
-    // };
-
-    // return models.Client.collection
-    //   .insertOne(clientWithAppointment)
-    //   .then((results) => successHandler(res, results))
-    //   .catch((err) => errorHandler(err));
-
-    models.Client.create({
-      name,
-      surname,
-      phone,
-      address,
-      // If no appointment, it still adds a bullshit here. Needs validation if no appointment
-      appointments: [new models.Appointment({ appointment, control, date, price, technician, treatment })]
-    })
-      .then(() => successHandler(res))
-      .catch((err) => errorHandler(err));
+        models.Client.create(newClient)
+          .then(() => successHandler(res))
+          .catch((err) => errorHandler(err));
+      }
+    });
   });
 
   // merge
   app.put('/appointment/:id', (req, res) => {
     const { appointment, control, date, price, technician, treatment } = req.body;
-    const { id } = req.params;
+    const id = ObjectId(req.params.id);
     const query = { 'appointments._id': id };
     const options = { arrayFilters: [{ 'element._id': id }] };
     const update = {
@@ -192,7 +173,7 @@ connectDb().then(async () => {
 
   // merge
   app.delete('/appointment/:id', (req, res) => {
-    const { id } = req.params;
+    const id = ObjectId(req.params.id);
     const query = { 'appointments._id': id };
     const update = { $pull: { appointments: { _id: id } } };
 
