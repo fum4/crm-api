@@ -4,15 +4,9 @@ import setupAppMiddleware from './src/middleware/app';
 import models, { connectDb } from './src/models';
 import { ObjectId } from 'bson';
 import { successHandler, errorHandler, generateId, logErrorConnecting } from './utils';
+
 const app = express();
 const port = process.env.PORT;
-
-app.use((req, res, next) => {
-  req.context = {
-    models
-  };
-  next();
-});
 
 setupAppMiddleware(app);
 
@@ -22,9 +16,7 @@ connectDb().then(async () => {
     successHandler(response);
   });
   app.get('/status', (req, res) => {
-    // if (db.serverConfig.isConnected()) {
     successHandler(res);
-    // }
   });
 
   // merge
@@ -39,15 +31,6 @@ connectDb().then(async () => {
 
   // merge
   app.post('/client', (req, res) => {
-    // OLD | MONGO DB VERSION |
-    // I THINK IT WAS WORKING WRONG ANYWAY, NOT ADDING THE APPOINTMENT IN THE ARRAY,
-    // BUT RATHER IN THE CLIENT'S BODY
-
-    // models.Client.collection
-    //   .insertOne(req.body)
-    //   .then((results) => successHandler(res, results))
-    //   .catch((err) => errorHandler(err));
-
     const { name, surname, phone, address } = req.body;
     const { appointment, control, date, price, technician, treatment } = req.body;
 
