@@ -51,14 +51,34 @@ connectDb().then(async () => {
     const { name, surname, phone, address } = req.body;
     const { appointment, control, date, price, technician, treatment } = req.body;
 
-    models.Client.create({
+    const appointments = [];
+
+    const newAppointment = new models.Appointment({
+      appointment,
+      control,
+      date,
+      price,
+      technician,
+      treatment
+    });
+
+    const newClient = {
       name,
       surname,
       phone,
       address,
-      // If no appointment, it still adds a bullshit here. Needs validation if no appointment
-      appointments: [new models.Appointment({ appointment, control, date, price, technician, treatment })]
-    })
+      appointments
+    };
+
+    newAppointment.validate((err) => {
+      if (err) {
+        delete newClient.appointments;
+      } else {
+        appointments.push(newAppointment);
+      }
+    });
+
+    models.Client.create(newClient)
       .then(() => successHandler(res))
       .catch((err) => errorHandler(err));
   });

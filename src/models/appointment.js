@@ -3,7 +3,7 @@ import { Schema, model, Types } from 'mongoose';
 const appointmentSchema = new Schema({
   appointment: {
     type: String,
-    // required: true
+    required: true
   },
   treatment: {
     type: String

@@ -17,7 +17,7 @@ const clientSchema = new Schema({
     type: String,
     required: true
   },
-  appointments: [Appointment.schema]
+  appointments: { type: [Appointment.schema], required: false }
 });
 
 clientSchema.index({
