@@ -34,16 +34,6 @@ connectDb().then(async () => {
     const { name, surname, phone, address } = req.body;
     const { appointment, control, date, price, technician, treatment } = req.body;
 
-    const appointments = [];
-
-    const newClient = {
-      name,
-      surname,
-      phone,
-      address,
-      appointments
-    };
-
     const newAppointment = new models.Appointment({
       appointment,
       control,
@@ -54,11 +44,19 @@ connectDb().then(async () => {
     });
 
     newAppointment.validate((err) => {
+      const appointments = [newAppointment];
+      const newClient = {
+        name,
+        surname,
+        phone,
+        address,
+        appointments
+      };
+
       if (err) {
         delete newClient.appointments;
-      } else {
-        appointments.push(newAppointment);
       }
+
       models.Client.create(newClient)
         .then(() => successHandler(res))
         .catch((err) => errorHandler(err));
