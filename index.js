@@ -60,7 +60,7 @@ connectDb().then(async () => {
       address,
       appointments
     };
-    
+
     const newAppointment = new models.Appointment({
       appointment,
       control,
@@ -76,11 +76,10 @@ connectDb().then(async () => {
       } else {
         appointments.push(newAppointment);
       }
+      models.Client.create(newClient)
+        .then(() => successHandler(res))
+        .catch((err) => errorHandler(err));
     });
-
-    models.Client.create(newClient)
-      .then(() => successHandler(res))
-      .catch((err) => errorHandler(err));
   });
 
   //neverificat
