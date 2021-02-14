@@ -53,6 +53,14 @@ connectDb().then(async () => {
 
     const appointments = [];
 
+    const newClient = {
+      name,
+      surname,
+      phone,
+      address,
+      appointments
+    };
+    
     const newAppointment = new models.Appointment({
       appointment,
       control,
@@ -61,14 +69,6 @@ connectDb().then(async () => {
       technician,
       treatment
     });
-
-    const newClient = {
-      name,
-      surname,
-      phone,
-      address,
-      appointments
-    };
 
     newAppointment.validate((err) => {
       if (err) {
