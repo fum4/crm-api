@@ -1,11 +1,13 @@
 import mongoose from 'mongoose';
+import User from './user';
 import Client from './client';
 import Appointment from './appointment.js';
+import Role from './role.js';
 import 'dotenv/config';
 
 const MongoURI = process.env.MONGO_URI;
 
-const connectDb = () => {
+const connect = () => {
   return mongoose.connect(MongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -13,8 +15,13 @@ const connectDb = () => {
   });
 };
 
-const models = { Client, Appointment };
+const models = { User, Client, Appointment, Role };
+const roles = ['User', 'Moderator', 'Admin'];
 
-export { connectDb };
+const db = {
+  connect,
+  roles,
+  models
+};
 
-export default models;
+export default db;
