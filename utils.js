@@ -18,7 +18,4 @@ export const logErrorConnecting = (err, client) => {
   console.log('#### client -> ', client);
 };
 
-export const buildMongoUri = (username, password) =>
-  `mongodb+srv://${username}:${password}@cluster0.v48nx.mongodb.net/smil32-db?retryWrites=true&w=majority`;
-
 export const generateId = () => (Date.now().toString(36) + Math.random().toString(36).substr(2, 5)).toUpperCase();

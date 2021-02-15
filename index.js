@@ -10,16 +10,17 @@ const port = process.env.PORT;
 
 setupAppMiddleware(app);
 
-connectDb().then(async () => {
+connectDb().then(() => {
   app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+
   app.post('/auth', (request, response) => {
     successHandler(response);
   });
+
   app.get('/status', (req, res) => {
     successHandler(res);
   });
 
-  // merge
   app.get('/clients', (req, res) => {
     models.Client.collection
       .find()
@@ -29,7 +30,6 @@ connectDb().then(async () => {
       .catch((err) => errorHandler(err));
   });
 
-  // merge
   app.post('/client', (req, res) => {
     const { name, surname, phone, address } = req.body;
     const { appointment, control, date, price, technician, treatment } = req.body;
@@ -63,7 +63,6 @@ connectDb().then(async () => {
     });
   });
 
-  //neverificat
   app.delete('/client', (req, res) => {
     models.Client.collection
       .deleteOne({ _id: ObjectId(req.body.clientId) })
@@ -71,7 +70,6 @@ connectDb().then(async () => {
       .catch((err) => errorHandler(err));
   });
 
-  //merge
   app.get('/appointments', (req, res) => {
     models.Client.collection
       .aggregate([
@@ -84,7 +82,6 @@ connectDb().then(async () => {
       .catch((err) => errorHandler(err));
   });
 
-  //// merge brici
   app.post('/appointment/:clientId?', (req, res) => {
     const { name, surname, phone, address } = req.body;
     const { appointment, control, date, price, technician, treatment } = req.body;
@@ -129,7 +126,6 @@ connectDb().then(async () => {
     });
   });
 
-  // merge
   app.put('/appointment/:id', (req, res) => {
     const { appointment, control, date, price, technician, treatment } = req.body;
     const id = ObjectId(req.params.id);
@@ -152,7 +148,6 @@ connectDb().then(async () => {
       .catch((err) => errorHandler(err));
   });
 
-  // merge
   app.delete('/appointment/:id', (req, res) => {
     const id = ObjectId(req.params.id);
     const query = { 'appointments._id': id };

@@ -32,4 +32,5 @@ appointmentSchema.index({
 });
 
 const Appointment = model('Appointment', appointmentSchema);
+
 export default Appointment;

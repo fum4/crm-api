@@ -26,4 +26,5 @@ clientSchema.index({
 });
 
 const Client = model('Client', clientSchema);
+
 export default Client;
