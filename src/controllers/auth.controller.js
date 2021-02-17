@@ -3,10 +3,10 @@ import db from '../models';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 
-const User = db.user;
-const Role = db.role;
+const User = db.models.User;
+const Role = db.models.Role;
 
-const signup = (req, res) => {
+const register = (req, res) => {
   const user = new User({
     username: req.body.username,
     email: req.body.email,
@@ -58,8 +58,8 @@ const signup = (req, res) => {
   });
 };
 
-exports.signin = (req, res) => {
-  User.findOne({
+const login = (req, res) => {
+  return User.findOne({
     username: req.body.username
   })
     .populate('roles', '-__v')
@@ -85,7 +85,7 @@ exports.signin = (req, res) => {
       }
 
       const token = jwt.sign({ id: user.id }, config.secret, {
-        expiresIn: 86400 // 24 hours
+        expiresIn: 30000 // 24 hours
       });
 
       const authorities = [];
@@ -103,3 +103,10 @@ exports.signin = (req, res) => {
       });
     });
 };
+
+const AuthController = {
+  login,
+  register
+};
+
+export default AuthController;

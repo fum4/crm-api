@@ -1,4 +1,4 @@
-import { Schema, model, Types } from 'mongoose';
+import { Schema, model } from 'mongoose';
 
 const appointmentSchema = new Schema({
   appointment: {
@@ -7,19 +7,15 @@ const appointmentSchema = new Schema({
   },
   treatment: {
     type: String
-    // required: true
   },
   technician: {
     type: String
-    // required: true
   },
   control: {
     type: String
-    // required: true
   },
   price: {
     type: String
-    // required: true
   },
   date: {
     type: Date,

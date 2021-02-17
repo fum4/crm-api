@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import Appointment from './appointment.js';
+import Appointment from './appointment.model';
 
 const clientSchema = new Schema({
   name: {
@@ -12,7 +12,6 @@ const clientSchema = new Schema({
   },
   address: {
     type: String
-    // required: true
   },
   phone: {
     type: String,

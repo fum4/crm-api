@@ -1,7 +1,9 @@
 import authJwt from './authJwt';
-import verifySignUp from './verifySignUp';
+import verifyRegister from './verifyRegister';
+import setupBaseMiddleware from './base';
 
-export default {
+export {
   authJwt,
-  verifySignUp
+  verifyRegister,
+  setupBaseMiddleware
 };

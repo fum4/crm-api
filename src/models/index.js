@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
-import User from './user';
-import Client from './client';
-import Appointment from './appointment.js';
-import Role from './role.js';
+import User from './user.model';
+import Client from './client.model';
+import Appointment from './appointment.model';
+import Role from './role.model';
 import 'dotenv/config';
 
 const MongoURI = process.env.MONGO_URI;
@@ -16,11 +16,11 @@ const connect = () => {
 };
 
 const models = { User, Client, Appointment, Role };
-const roles = ['User', 'Moderator', 'Admin'];
+const ROLES = ['User', 'Moderator', 'Admin'];
 
 const db = {
   connect,
-  roles,
+  ROLES,
   models
 };
 
