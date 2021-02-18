@@ -16,10 +16,6 @@ const appointmentSchema = new Schema({
   },
   price: {
     type: String
-  },
-  date: {
-    type: String,
-    required: true
   }
 });
 

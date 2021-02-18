@@ -21,7 +21,6 @@ const addClient = (req, res) => {
   const newAppointment = new Appointment({
     appointment,
     control,
-    date,
     price,
     technician,
     treatment
@@ -58,8 +57,8 @@ const getAppointments = (req, res) => {
   return Client.collection
     .aggregate([
       { $unwind: '$appointments' },
-      { $sort: { 'appointments.date': 1 } },
-      { $project: { appointment: '$appointments', name: 1, surname: 1 } }
+      { $sort: { 'appointments.appointment': 1 } },
+      { $project: { appointment: '$appointments', _id: 1, name: 1, surname: 1 } }
     ])
     .toArray()
     .then((results) => res.status(200).json(results))
@@ -68,13 +67,12 @@ const getAppointments = (req, res) => {
 
 const addAppointment = (req, res) => {
   const { name, surname, phone, address } = req.body;
-  const { appointment, control, date, price, technician, treatment } = req.body;
+  const { appointment, control, price, technician, treatment } = req.body;
   const clientId = req.params && req.params.clientId;
 
   const newAppointment = new Appointment({
     appointment,
     control,
-    date,
     price,
     technician,
     treatment
@@ -111,7 +109,7 @@ const addAppointment = (req, res) => {
 };
 
 const modifyAppointment = (req, res) => {
-  const { appointment, control, date, price, technician, treatment } = req.body;
+  const { appointment, control, price, technician, treatment } = req.body;
   const id = ObjectId(req.params.id);
   const query = { 'appointments._id': id };
   const options = { arrayFilters: [{ 'element._id': id }] };
@@ -119,7 +117,6 @@ const modifyAppointment = (req, res) => {
     $set: {
       'appointments.$[element].appointment': appointment,
       'appointments.$[element].control': control,
-      'appointments.$[element].date': date,
       'appointments.$[element].price': price,
       'appointments.$[element].technician': technician,
       'appointments.$[element].treatment': treatment
