@@ -6,6 +6,10 @@ const User = db.user;
 const Role = db.role;
 
 const verifyToken = (req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    return res.status(200).send();
+  }
+
   const authorizationHeader = req.headers.authorization;
   const token = authorizationHeader && authorizationHeader.split(' ')[1];
 

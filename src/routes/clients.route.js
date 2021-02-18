@@ -1,10 +1,10 @@
 import express from 'express';
 import { ClientsController } from '../controllers';
-// import { authJwt } from '../middleware';
+import { authJwt } from '../middleware';
 
 const ClientsRouter = express.Router();
 
-// ClientsRouter.use(authJwt.verifyToken);
+ClientsRouter.use(authJwt.verifyToken);
 
 ClientsRouter.get('/clients', ClientsController.getClients);
 
