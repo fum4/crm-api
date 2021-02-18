@@ -1,6 +1,6 @@
 import express from 'express';
 import db from './src/models';
-import { authJwt, setupBaseMiddleware } from './src/middleware';
+import { setupBaseMiddleware } from './src/middleware';
 import { AuthRouter, ClientsRouter } from './src/routes';
 import 'dotenv/config';
 
