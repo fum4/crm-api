@@ -1,6 +1,11 @@
 import { Schema, model } from 'mongoose';
 
 const appointmentSchema = new Schema({
+  clientId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Client',
+    required: true
+  },
   appointment: {
     type: String,
     required: true
@@ -11,16 +16,21 @@ const appointmentSchema = new Schema({
   technician: {
     type: String
   },
-  control: {
-    type: String
-  },
   price: {
     type: String
+  },
+  control: {
+    type: Schema.Types.ObjectId,
+    ref: 'Control'
+  },
+  type: {
+    type: String,
+    default: 'appointment'
   }
 });
 
 appointmentSchema.index({
-  date: 1
+  appointment: 1
 });
 
 const Appointment = model('Appointment', appointmentSchema);

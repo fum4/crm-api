@@ -1,5 +1,4 @@
 import { Schema, model } from 'mongoose';
-import Appointment from './appointment.model';
 
 const clientSchema = new Schema({
   name: {
@@ -17,7 +16,10 @@ const clientSchema = new Schema({
     type: String,
     required: true
   },
-  appointments: { type: [Appointment.schema], required: false }
+  appointments: {
+    type: [Schema.Types.ObjectId],
+    ref: 'Appointment'
+  }
 });
 
 clientSchema.index({

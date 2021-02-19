@@ -12,12 +12,16 @@ ClientsRouter.post('/client', ClientsController.addClient);
 
 ClientsRouter.delete('/client', ClientsController.removeClient);
 
-ClientsRouter.get('/appointments', ClientsController.getAppointments);
+ClientsRouter.get('/appointments', ClientsController.getAppointmentsAndControls);
 
 ClientsRouter.post('/appointment/:clientId?', ClientsController.addAppointment);
 
 ClientsRouter.put('/appointment/:id', ClientsController.modifyAppointment);
 
 ClientsRouter.delete('/appointment/:id', ClientsController.removeAppointment);
+
+ClientsRouter.put('/control/:id', ClientsController.modifyControl);
+
+ClientsRouter.delete('/control/:id', ClientsController.removeControl);
 
 export default ClientsRouter;
