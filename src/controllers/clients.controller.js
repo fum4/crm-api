@@ -1,5 +1,4 @@
 import db from '../models';
-import { errorHandler } from '../../utils';
 import { ObjectId } from 'bson';
 
 const Client = db.models.Client;
@@ -16,7 +15,7 @@ const getClients = (req, res) => {
 
 const addClient = (req, res) => {
   const { name, surname, phone, address } = req.body;
-  const { appointment, control, date, price, technician, treatment } = req.body;
+  const { appointment, control, price, technician, treatment } = req.body;
 
   const newAppointment = new Appointment({
     appointment,
@@ -80,7 +79,7 @@ const addAppointment = (req, res) => {
 
   return newAppointment.validate((err) => {
     if (err) {
-      errorHandler(err);
+      return res.status(500).send(err);
     } else {
       if (clientId) {
         const query = { _id: ObjectId(clientId) };
