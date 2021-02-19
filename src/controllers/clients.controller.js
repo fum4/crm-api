@@ -16,7 +16,7 @@ const getNormalizedAppointmentsForClient = (client) => {
           .findOne({ _id: appointment.control })
           .then((controlDocument) => ({
             ...appointment,
-            control: controlDocument.control
+            control: controlDocument?.control
           }));
       });
 
@@ -35,7 +35,7 @@ const getNormalizedControlsForClient = (client) => {
           .findOne({ _id: control.appointmentId })
           .then((appointmentDocument) => ({
             ...control,
-            appointment: appointmentDocument.appointment
+            appointment: appointmentDocument?.appointment
           }));
       });
 
