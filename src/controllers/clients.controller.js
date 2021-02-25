@@ -114,11 +114,12 @@ const getAppointments = async () => {
     const controlInfo = Control.collection
       .findOne({ _id: appointment.control })
       .then((control) => {
-        appointment.control = control.control;
+        appointment.control = control?.control;
       });
 
     return Promise.all([clientInfo, controlInfo])
-      .then(() => appointment);
+      .then(() => appointment)
+      .catch((error) => { console.log(error) });
   });
 
   return Promise.all(promises);
@@ -147,7 +148,8 @@ const getControls = async () => {
         delete control.clientId;
 
         return control;
-      });
+      })
+      .catch((error) => { console.log(error) });
   });
 
   return Promise.all(promises);
