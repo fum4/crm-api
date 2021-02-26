@@ -270,12 +270,15 @@ const modifyControl = (req, res) => {
       .then((response) => res.status(200).json(response))
       .catch((err) => res.status(500).json(err));
   }
-}
+};
 
 const removeAppointment = (req, res) => {
+  const appointmentId = ObjectId(req.params.id);
+
   return Appointment.collection
-    .deleteOne({ _id: ObjectId(req.params.id) })
-    .then((results) => res.status(200).json(results))
+    .deleteOne({ _id: appointmentId })
+    .then(() => Control.collection.deleteMany({ appointmentId }))
+    .then(() => res.status(200).json())
     .catch((err) => res.status(500).json(err));
 };
 

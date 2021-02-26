@@ -11,7 +11,7 @@ const controlSchema = new Schema({
     ref: 'Appointment',
     required: true
   },
-  appointment: {
+  control: {
     type: String,
     required: true
   },
