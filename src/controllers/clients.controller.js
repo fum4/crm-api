@@ -8,7 +8,7 @@ const Control = db.models.Control;
 const getNormalizedAppointmentsForClient = (client) => {
   return Appointment.collection
     .find({ clientId: client._id })
-    .sort({ control: 1 })
+    .sort({ appointment: 1 })
     .toArray()
     .then((appointments) => {
       const promises = appointments.map((appointment) => {
@@ -16,7 +16,7 @@ const getNormalizedAppointmentsForClient = (client) => {
           .findOne({ _id: appointment.control })
           .then((controlDocument) => ({
             ...appointment,
-            control: controlDocument?.control
+            control: controlDocument?.date || '-'
           }));
       });
 
@@ -27,16 +27,20 @@ const getNormalizedAppointmentsForClient = (client) => {
 const getNormalizedControlsForClient = (client) => {
   return Control.collection
     .find({ clientId: client._id })
-    .sort({ control: 1 })
+    .sort({ date: 1 })
     .toArray()
     .then((controls) => {
       const promises = controls.map((control) => {
         return Appointment.collection
           .findOne({ _id: control.appointmentId })
-          .then((appointmentDocument) => ({
-            ...control,
-            appointment: appointmentDocument?.appointment
-          }));
+          .then((appointmentDocument) => {
+            delete control?.control;
+
+            return {
+              ...control,
+              appointment: appointmentDocument?.appointment
+            }
+          });
       });
 
       return Promise.all(promises);
@@ -114,7 +118,7 @@ const getAppointments = async () => {
     const controlInfo = Control.collection
       .findOne({ _id: appointment.control })
       .then((control) => {
-        appointment.control = control?.control;
+        appointment.control = control?.date;
       });
 
     return Promise.all([clientInfo, controlInfo])
@@ -128,7 +132,7 @@ const getAppointments = async () => {
 const getControls = async () => {
   const controls = await Control.collection
     .find()
-    .sort({ control: 1 })
+    .sort({ date: 1 })
     .toArray();
 
   const promises = controls.map((control) => {
@@ -182,7 +186,7 @@ const addAppointmentForClient = async (payload, res) => {
   const controlDocument = await Control.create({
     clientId,
     appointmentId,
-    control,
+    date: control,
     price,
     technician,
     treatment
@@ -235,7 +239,7 @@ const modifyAppointment = async (req, res) => {
       treatment
     };
     const controlPayload = {
-      control,
+      date: control,
       appointment,
       price,
       technician,
@@ -253,13 +257,29 @@ const modifyAppointment = async (req, res) => {
   }
 };
 
-const modifyControl = (req, res) => {
-  const { control, price, treatment, technician } = req.body;
+const modifyControl = async (req, res) => {
+  const { date, control, price, treatment, technician } = req.body;
   const controlId = req.params.id && ObjectId(req.params.id);
 
   if (controlId) {
+    let controlDocument;
+
+    if (control) {
+      const { appointmentId, clientId } = await Control.collection.findOne({ _id: controlId });
+
+      controlDocument = await Control.create({
+        date: control,
+        appointmentId,
+        clientId,
+        price,
+        treatment,
+        technician
+      });
+    }
+
     const payload = {
-      control,
+      control: controlDocument?._id,
+      date,
       price,
       treatment,
       technician

@@ -11,11 +11,18 @@ const controlSchema = new Schema({
     ref: 'Appointment',
     required: true
   },
-  control: {
+  date: {
     type: String,
     required: true
   },
+  control: {
+    type: Schema.Types.ObjectId,
+    ref: 'Control'
+  },
   treatment: {
+    type: String,
+  },
+  technician: {
     type: String,
   },
   price: {
