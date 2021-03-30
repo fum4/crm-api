@@ -16,7 +16,7 @@ const getNormalizedAppointmentsForClient = (client) => {
           .findOne({ _id: appointment.control })
           .then((controlDocument) => ({
             ...appointment,
-            control: controlDocument?.date || '-'
+            control: controlDocument?.date
           }));
       });
 
@@ -66,7 +66,7 @@ const getClients = async (req, res) => {
 };
 
 const addClient = async (req, res) => {
-  const { name, surname, phone, address } = req.body;
+  const { name, surname, phone, address, appointment } = req.body;
 
   const clientDocument = await Client.create({
     name,
@@ -75,21 +75,27 @@ const addClient = async (req, res) => {
     address
   });
 
-  const appointmentPayload = {
-    clientId: clientDocument._id,
-    appointment: req.body.appointment,
-    control: req.body.control,
-    price: req.body.price,
-    technician: req.body.technician,
-    treatment: req.body.treatment
+  if (appointment) {
+    const { control, price, technician, treatment } = req.body;
+
+    const appointmentPayload = {
+      clientId: clientDocument._id,
+      appointment,
+      control,
+      price,
+      technician,
+      treatment
+    }
+
+    return addAppointmentForClient(appointmentPayload, res);
   }
 
-  return addAppointmentForClient(appointmentPayload, res);
+  return res.status(200).json(clientDocument);
 };
 
 const removeClient = (req, res) => {
   return Client.collection
-    .deleteOne({ _id: ObjectId(req.body.clientId) })
+    .deleteOne({ _id: ObjectId(req.params.id) })
     .then((results) => res.status(200).json(results))
     .catch((err) => res.status(500).json(err));
 };
@@ -183,7 +189,7 @@ const addAppointmentForClient = async (payload, res) => {
 
   const appointmentId = appointmentDocument._id;
 
-  const controlDocument = await Control.create({
+  const controlDocument = control && await Control.create({
     clientId,
     appointmentId,
     date: control,
@@ -193,7 +199,7 @@ const addAppointmentForClient = async (payload, res) => {
   });
 
   try {
-    await Appointment.updateOne({ _id: appointmentId }, { $set: { control: controlDocument._id } });
+    await Appointment.updateOne({ _id: appointmentId }, { $set: { control: controlDocument?._id } });
     await Client.updateOne({ _id: clientId }, { $push: { appointments: appointmentId } });
 
     return res.status(201).json();
@@ -230,9 +236,7 @@ const modifyAppointment = async (req, res) => {
   if (appointmentId) {
     const appointmentDocument = await Appointment.collection.findOne({ _id: appointmentId });
 
-    const controlId = appointmentDocument.control;
     const appointmentPayload = {
-      control: controlId,
       appointment,
       price,
       technician,
@@ -247,7 +251,23 @@ const modifyAppointment = async (req, res) => {
     };
 
     try {
-      await Control.collection.updateOne({ _id: controlId }, { $set: { ...controlPayload } });
+      let controlId = appointmentDocument.control;
+
+      const currentControl = await Control.collection.findOne({ _id: controlId });
+
+      if (currentControl) {
+        await Control.collection.updateOne({ _id: controlId }, { $set: { ...controlPayload } });
+      } else {
+        controlPayload.appointmentId = appointmentId;
+        controlPayload.clientId = appointmentDocument.clientId;
+
+        const controlDocument = await Control.create({ ...controlPayload });
+
+        controlId = controlDocument._id;
+      }
+
+      appointmentPayload.control = controlId;
+
       await Appointment.collection.updateOne({ _id: appointmentId }, { $set: { ...appointmentPayload } });
 
       return res.status(200).json();

@@ -10,7 +10,7 @@ ClientsRouter.get('/clients', ClientsController.getClients);
 
 ClientsRouter.post('/client', ClientsController.addClient);
 
-ClientsRouter.delete('/client', ClientsController.removeClient);
+ClientsRouter.delete('/client/:id', ClientsController.removeClient);
 
 ClientsRouter.get('/appointments', ClientsController.getAppointmentsAndControls);
 
