@@ -107,6 +107,26 @@ const removeControl = (req, res) => {
     .catch((err) => res.status(500).json(err));
 };
 
+const sortAppointmentsAndControls = (appointmentsAndControls) => {
+  return appointmentsAndControls.sort((a, b) => {
+    if (a.type === 'control' && b.type === 'appointment') {
+      return a.date < b.appointment ? -1 : 1;
+    }
+
+    if (a.type === 'appointment' && b.type === 'control') {
+      return a.appointment < b.date ? -1 : 1;
+    }
+
+    if (a.type === 'appointment' && b.type === 'appointment') {
+      return a.appointment < b.appointment ? -1 : 1;
+    }
+
+    if (a.type === 'control' && b.type === 'control') {
+      return a.date < b.date ? -1 : 1;
+    }
+  })
+}
+
 const getAppointments = async () => {
   const appointments = await Appointment.collection
     .find()
@@ -169,8 +189,9 @@ const getAppointmentsAndControls = async (req, res) => {
   try {
     const appointments = await getAppointments();
     const controls = await getControls();
+    const appointmentsAndControls = sortAppointmentsAndControls([...appointments, ...controls]);
 
-    return res.status(200).send([...appointments, ...controls]);
+    return res.status(200).send(appointmentsAndControls);
   } catch (err) {
     return res.status(500).send(err);
   }
