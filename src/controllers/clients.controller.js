@@ -258,12 +258,14 @@ const modifyAppointment = async (req, res) => {
       if (currentControl) {
         await Control.collection.updateOne({ _id: controlId }, { $set: { ...controlPayload } });
       } else {
-        controlPayload.appointmentId = appointmentId;
-        controlPayload.clientId = appointmentDocument.clientId;
+        if (control) {
+          controlPayload.appointmentId = appointmentId;
+          controlPayload.clientId = appointmentDocument.clientId;
 
-        const controlDocument = await Control.create({ ...controlPayload });
+          const controlDocument = await Control.create({ ...controlPayload });
 
-        controlId = controlDocument._id;
+          controlId = controlDocument._id;
+        }
       }
 
       appointmentPayload.control = controlId;
