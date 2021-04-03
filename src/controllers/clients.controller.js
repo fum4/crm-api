@@ -266,7 +266,6 @@ const modifyAppointment = async (req, res) => {
     const controlPayload = {
       date: control,
       appointment,
-      price,
       technician,
       treatment
     };
@@ -282,6 +281,7 @@ const modifyAppointment = async (req, res) => {
         if (control) {
           controlPayload.appointmentId = appointmentId;
           controlPayload.clientId = appointmentDocument.clientId;
+          controlPayload.price = price;
 
           const controlDocument = await Control.create({ ...controlPayload });
 
