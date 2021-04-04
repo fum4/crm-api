@@ -87,23 +87,23 @@ const addClient = async (req, res) => {
       treatment
     }
 
-    return addAppointmentForClient(appointmentPayload, res);
+    return addAppointmentForClient(appointmentPayload, req, res);
   }
 
-  return res.status(200).json(clientDocument);
+  return getClients(req, res);
 };
 
 const removeClient = (req, res) => {
   return Client.collection
     .deleteOne({ _id: ObjectId(req.params.id) })
-    .then((results) => res.status(200).json(results))
+    .then(() => getClients(req, res))
     .catch((err) => res.status(500).json(err));
 };
 
 const removeControl = (req, res) => {
   return Control.collection
     .deleteOne({ _id: ObjectId(req.params.id) })
-    .then((results) => res.status(200).json(results))
+    .then(() => getAppointmentsAndControls(req, res))
     .catch((err) => res.status(500).json(err));
 };
 
@@ -137,8 +137,10 @@ const getAppointments = async () => {
     const clientInfo = Client.collection
       .findOne({ _id: appointment.clientId })
       .then((client) => {
-        appointment.name = client.name;
-        appointment.surname = client.surname;
+        if (client) { // some appointments come as null; should fix that and remove this check
+          appointment.name = client.name;
+          appointment.surname = client.surname;
+        }
       });
 
     const controlInfo = Control.collection
@@ -168,8 +170,10 @@ const getControls = async () => {
     const clientInfo = Client.collection
       .findOne({ _id: control.clientId })
       .then((client) => {
-        control.name = client.name;
-        control.surname = client.surname;
+        if (client) { // some controls come as null; should fix that and remove this check
+          control.name = client.name;
+          control.surname = client.surname;
+        }
       });
 
     return Promise.all([clientInfo, appointmentInfo])
@@ -197,7 +201,7 @@ const getAppointmentsAndControls = async (req, res) => {
   }
 };
 
-const addAppointmentForClient = async (payload, res) => {
+const addAppointmentForClient = async (payload, req, res) => {
   const { clientId, appointment, price, technician, treatment, control } = payload;
 
   const appointmentDocument = await Appointment.create({
@@ -223,7 +227,7 @@ const addAppointmentForClient = async (payload, res) => {
     await Appointment.updateOne({ _id: appointmentId }, { $set: { control: controlDocument?._id } });
     await Client.updateOne({ _id: clientId }, { $push: { appointments: appointmentId } });
 
-    return res.status(201).json();
+    return getAppointmentsAndControls(req, res);
   } catch (err) {
     return res.status(500).json(err);
   }
@@ -247,7 +251,7 @@ const addAppointment = async (req, res) => {
     treatment: req.body.treatment
   }
 
-  return addAppointmentForClient(appointmentPayload, res);
+  return addAppointmentForClient(appointmentPayload, req, res);
 };
 
 const modifyAppointment = async (req, res) => {
@@ -293,7 +297,7 @@ const modifyAppointment = async (req, res) => {
 
       await Appointment.collection.updateOne({ _id: appointmentId }, { $set: { ...appointmentPayload } });
 
-      return res.status(200).json();
+      return getAppointmentsAndControls(req, res);
     } catch (err) {
       return res.status(500).json(err);
     }
@@ -330,7 +334,7 @@ const modifyControl = async (req, res) => {
 
     return Control.collection
       .updateOne({ _id: controlId }, { $set: { ...payload } })
-      .then((response) => res.status(200).json(response))
+      .then(() => getAppointmentsAndControls(req, res))
       .catch((err) => res.status(500).json(err));
   }
 };
@@ -341,7 +345,7 @@ const removeAppointment = (req, res) => {
   return Appointment.collection
     .deleteOne({ _id: appointmentId })
     .then(() => Control.collection.deleteMany({ appointmentId }))
-    .then(() => res.status(200).json())
+    .then(() => getAppointmentsAndControls(req, res))
     .catch((err) => res.status(500).json(err));
 };
 
