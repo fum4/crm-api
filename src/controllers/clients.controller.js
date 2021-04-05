@@ -87,7 +87,13 @@ const addClient = async (req, res) => {
       treatment
     }
 
-    return addAppointmentForClient(appointmentPayload, req, res);
+    const addAppointmentResponse = await addAppointmentForClient(appointmentPayload, req, res);
+
+    if (addAppointmentResponse.success) {
+      return getClients(req, res);
+    }
+
+    return res.status(500).send(addAppointmentResponse.error);
   }
 
   return getClients(req, res);
@@ -227,9 +233,9 @@ const addAppointmentForClient = async (payload, req, res) => {
     await Appointment.updateOne({ _id: appointmentId }, { $set: { control: controlDocument?._id } });
     await Client.updateOne({ _id: clientId }, { $push: { appointments: appointmentId } });
 
-    return getAppointmentsAndControls(req, res);
-  } catch (err) {
-    return res.status(500).json(err);
+    return { success: true }; // TODO: refactor
+  } catch (error) {
+    return { error };
   }
 }
 
@@ -251,7 +257,13 @@ const addAppointment = async (req, res) => {
     treatment: req.body.treatment
   }
 
-  return addAppointmentForClient(appointmentPayload, req, res);
+  const addAppointmentResponse = await addAppointmentForClient(appointmentPayload, req, res);
+
+  if (addAppointmentResponse.success) {
+    return getAppointmentsAndControls(req, res);
+  }
+
+  return res.status(500).send(addAppointmentResponse.error);
 };
 
 const modifyAppointment = async (req, res) => {
