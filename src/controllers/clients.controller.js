@@ -147,8 +147,11 @@ const getAppointments = async () => {
     const clientInfo = Client.collection
       .findOne({ _id: appointment.clientId })
       .then((client) => {
-        appointment.name = client?.name;
-        appointment.surname = client?.surname;
+        if (client) {
+          appointment.name = client.name;
+          appointment.surname = client.surname;
+          appointment.phone = client.phone;
+        }
       });
 
     if (clientInfo) {
@@ -182,8 +185,11 @@ const getControls = async () => {
     const clientInfo = Client.collection
       .findOne({ _id: control.clientId })
       .then((client) => {
-        control.name = client?.name;
-        control.surname = client?.surname;
+        if (client) {
+          control.name = client.name;
+          control.surname = client.surname;
+          control.phone = client.phone;
+        }
       });
 
     if (clientInfo) {
