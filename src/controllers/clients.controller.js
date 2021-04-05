@@ -100,8 +100,12 @@ const addClient = async (req, res) => {
 };
 
 const removeClient = (req, res) => {
+  const clientId = ObjectId(req.params.id);
+
   return Client.collection
-    .deleteOne({ _id: ObjectId(req.params.id) })
+    .deleteOne({ _id: clientId })
+    .then(() => Appointment.collection.deleteMany({ clientId }))
+    .then(() => Control.collection.deleteMany({ clientId }))
     .then(() => getClients(req, res))
     .catch((err) => res.status(500).json(err));
 };
@@ -143,24 +147,26 @@ const getAppointments = async () => {
     const clientInfo = Client.collection
       .findOne({ _id: appointment.clientId })
       .then((client) => {
-        if (client) { // some appointments come as null; should fix that and remove this check
-          appointment.name = client.name;
-          appointment.surname = client.surname;
-        }
+        appointment.name = client?.name;
+        appointment.surname = client?.surname;
       });
 
-    const controlInfo = Control.collection
-      .findOne({ _id: appointment.control })
-      .then((control) => {
-        appointment.control = control?.date;
-      });
+    if (clientInfo) {
+      const controlInfo = Control.collection
+        .findOne({ _id: appointment.control })
+        .then((control) => {
+          appointment.control = control?.date;
+        });
 
-    return Promise.all([clientInfo, controlInfo])
-      .then(() => appointment)
-      .catch((error) => { console.log(error) });
+      return Promise.all([clientInfo, controlInfo])
+        .then(() => appointment)
+        .catch((error) => { console.log(error) });
+    }
+
+    return false;
   });
 
-  return Promise.all(promises);
+  return Promise.all(promises.filter(Boolean));
 };
 
 const getControls = async () => {
@@ -176,23 +182,25 @@ const getControls = async () => {
     const clientInfo = Client.collection
       .findOne({ _id: control.clientId })
       .then((client) => {
-        if (client) { // some controls come as null; should fix that and remove this check
-          control.name = client.name;
-          control.surname = client.surname;
-        }
+        control.name = client?.name;
+        control.surname = client?.surname;
       });
 
-    return Promise.all([clientInfo, appointmentInfo])
-      .then(() => {
-        delete control.appointmentId;
-        delete control.clientId;
+    if (clientInfo) {
+      return Promise.all([clientInfo, appointmentInfo])
+        .then(() => {
+          delete control.appointmentId;
+          delete control.clientId;
 
-        return control;
-      })
-      .catch((error) => { console.log(error) });
+          return control;
+        })
+        .catch((error) => { console.log(error) });
+    }
+
+    return false;
   });
 
-  return Promise.all(promises);
+  return Promise.all(promises.filter(Boolean));
 };
 
 const getAppointmentsAndControls = async (req, res) => {
