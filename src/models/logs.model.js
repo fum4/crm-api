@@ -10,7 +10,7 @@ const logsSchema = new Schema({
 });
 
 logsSchema.index({
-  timestamp: 1
+  timestamp: -1
 });
 
 const Logs = model('Logs', logsSchema);

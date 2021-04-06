@@ -49,94 +49,36 @@ const getNormalizedControlsForClient = (client) => {
     });
 };
 
-const getClients = async (req, res) => {
-  const clientDocuments = await Client.collection
-    .find()
-    .sort({ name: 1, surname: 1 })
-    .toArray();
+const addAppointmentForClient = async (payload) => {
+  const { clientId, appointment, price, technician, treatment, control } = payload;
 
-  const clients = await clientDocuments.map(async (document) => {
-    document.appointments = await getNormalizedAppointmentsForClient(document);
-    document.controls = await getNormalizedControlsForClient(document);
-
-    return document;
+  const appointmentDocument = await Appointment.create({
+    clientId,
+    appointment,
+    price,
+    technician,
+    treatment
   });
 
-  return Promise.all(clients)
-    .then((normalizedClients) => sendResponse(res, 200, false, normalizedClients, successMessages.GET_CLIENTS))
-    .catch((error) => sendResponse(res, 500, true, error,errorMessages.GET_CLIENTS));
-};
+  const appointmentId = appointmentDocument._id;
 
-const addClient = async (req, res) => {
-  const { name, surname, phone, address, appointment } = req.body;
-
-  const clientDocument = await Client.create({
-    name,
-    surname,
-    phone,
-    address
+  const controlDocument = control && await Control.create({
+    clientId,
+    appointmentId,
+    date: control,
+    price,
+    technician,
+    treatment
   });
 
-  if (appointment) {
-    const { control, price, technician, treatment } = req.body;
+  try {
+    await Appointment.updateOne({ _id: appointmentId }, { $set: { control: controlDocument?._id } });
+    await Client.updateOne({ _id: clientId }, { $push: { appointments: appointmentId } });
 
-    const appointmentPayload = {
-      clientId: clientDocument._id,
-      appointment,
-      control,
-      price,
-      technician,
-      treatment
-    }
-
-    const addAppointmentResponse = await addAppointmentForClient(appointmentPayload);
-
-    if (addAppointmentResponse.success) {
-      return getClients(req, res);
-    }
-
-    return sendResponse(res, 500, true, addAppointmentResponse.error, errorMessages.ADD_CLIENT);
+    return { success: true }; // TODO: refactor
+  } catch (error) {
+    return { error };
   }
-
-  return getClients(req, res);
-};
-
-const removeClient = (req, res) => {
-  const clientId = ObjectId(req.params.id);
-
-  return Client.collection
-    .deleteOne({ _id: clientId })
-    .then(() => Appointment.collection.deleteMany({ clientId }))
-    .then(() => Control.collection.deleteMany({ clientId }))
-    .then(() => getClients(req, res))
-    .catch((error) => sendResponse(res, 500, true, error, errorMessages.REMOVE_CLIENT));
-};
-
-const removeControl = (req, res) => {
-  return Control.collection
-    .deleteOne({ _id: ObjectId(req.params.id) })
-    .then(() => getAppointmentsAndControls(req, res))
-    .catch((error) => sendResponse(res, 500, true, error, errorMessages.REMOVE_CONTROL));
-};
-
-const sortAppointmentsAndControls = (appointmentsAndControls) => {
-  return appointmentsAndControls.sort((a, b) => {
-    if (a.type === 'control' && b.type === 'appointment') {
-      return a.date < b.appointment ? -1 : 1;
-    }
-
-    if (a.type === 'appointment' && b.type === 'control') {
-      return a.appointment < b.date ? -1 : 1;
-    }
-
-    if (a.type === 'appointment' && b.type === 'appointment') {
-      return a.appointment < b.appointment ? -1 : 1;
-    }
-
-    if (a.type === 'control' && b.type === 'control') {
-      return a.date < b.date ? -1 : 1;
-    }
-  })
 }
 
 const getAppointments = async () => {
@@ -211,6 +153,44 @@ const getControls = async () => {
   return Promise.all(promises.filter(Boolean));
 };
 
+const sortAppointmentsAndControls = (appointmentsAndControls) => {
+  return appointmentsAndControls.sort((a, b) => {
+    if (a.type === 'control' && b.type === 'appointment') {
+      return a.date < b.appointment ? -1 : 1;
+    }
+
+    if (a.type === 'appointment' && b.type === 'control') {
+      return a.appointment < b.date ? -1 : 1;
+    }
+
+    if (a.type === 'appointment' && b.type === 'appointment') {
+      return a.appointment < b.appointment ? -1 : 1;
+    }
+
+    if (a.type === 'control' && b.type === 'control') {
+      return a.date < b.date ? -1 : 1;
+    }
+  })
+}
+
+const getClients = async (req, res) => {
+  const clientDocuments = await Client.collection
+    .find()
+    .sort({ name: 1, surname: 1 })
+    .toArray();
+
+  const clients = await clientDocuments.map(async (document) => {
+    document.appointments = await getNormalizedAppointmentsForClient(document);
+    document.controls = await getNormalizedControlsForClient(document);
+
+    return document;
+  });
+
+  return Promise.all(clients)
+    .then((normalizedClients) => sendResponse(res, 200, false, normalizedClients, successMessages.GET_CLIENTS))
+    .catch((error) => sendResponse(res, 500, true, error,errorMessages.GET_CLIENTS));
+};
+
 const getAppointmentsAndControls = async (req, res) => {
   try {
     const appointments = await getAppointments();
@@ -223,37 +203,39 @@ const getAppointmentsAndControls = async (req, res) => {
   }
 };
 
-const addAppointmentForClient = async (payload) => {
-  const { clientId, appointment, price, technician, treatment, control } = payload;
+const addClient = async (req, res) => {
+  const { name, surname, phone, address, appointment } = req.body;
 
-  const appointmentDocument = await Appointment.create({
-    clientId,
-    appointment,
-    price,
-    technician,
-    treatment
+  const clientDocument = await Client.create({
+    name,
+    surname,
+    phone,
+    address
   });
 
-  const appointmentId = appointmentDocument._id;
+  if (appointment) {
+    const { control, price, technician, treatment } = req.body;
 
-  const controlDocument = control && await Control.create({
-    clientId,
-    appointmentId,
-    date: control,
-    price,
-    technician,
-    treatment
-  });
+    const appointmentPayload = {
+      clientId: clientDocument._id,
+      appointment,
+      control,
+      price,
+      technician,
+      treatment
+    }
 
-  try {
-    await Appointment.updateOne({ _id: appointmentId }, { $set: { control: controlDocument?._id } });
-    await Client.updateOne({ _id: clientId }, { $push: { appointments: appointmentId } });
+    const addAppointmentResponse = await addAppointmentForClient(appointmentPayload);
 
-    return { success: true }; // TODO: refactor
-  } catch (error) {
-    return { error };
+    if (addAppointmentResponse.success) {
+      return getClients(req, res);
+    }
+
+    return sendResponse(res, 500, true, addAppointmentResponse.error, errorMessages.ADD_CLIENT);
   }
-}
+
+  return getClients(req, res);
+};
 
 const addAppointment = async (req, res) => {
   const client = req.params && req.params.clientId;
@@ -371,6 +353,17 @@ const modifyControl = async (req, res) => {
   }
 };
 
+const removeClient = (req, res) => {
+  const clientId = ObjectId(req.params.id);
+
+  return Client.collection
+    .deleteOne({ _id: clientId })
+    .then(() => Appointment.collection.deleteMany({ clientId }))
+    .then(() => Control.collection.deleteMany({ clientId }))
+    .then(() => getClients(req, res))
+    .catch((error) => sendResponse(res, 500, true, error, errorMessages.REMOVE_CLIENT));
+};
+
 const removeAppointment = (req, res) => {
   const appointmentId = ObjectId(req.params.id);
 
@@ -379,6 +372,13 @@ const removeAppointment = (req, res) => {
     .then(() => Control.collection.deleteMany({ appointmentId }))
     .then(() => getAppointmentsAndControls(req, res))
     .catch((error) => sendResponse(res, 500, true, error, errorMessages.REMOVE_APPOINTMENT));
+};
+
+const removeControl = (req, res) => {
+  return Control.collection
+    .deleteOne({ _id: ObjectId(req.params.id) })
+    .then(() => getAppointmentsAndControls(req, res))
+    .catch((error) => sendResponse(res, 500, true, error, errorMessages.REMOVE_CONTROL));
 };
 
 const ClientsController = {
