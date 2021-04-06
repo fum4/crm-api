@@ -262,24 +262,28 @@ const addAppointment = async (req, res) => {
     return addClient(req, res);
   }
 
-  const clientDocument = await Client.collection.findOne({ _id: ObjectId(client) });
+  try {
+    const clientDocument = await Client.collection.findOne({ _id: ObjectId(client) });
 
-  const appointmentPayload = {
-    clientId: clientDocument._id,
-    appointment: req.body.appointment,
-    control: req.body.control,
-    price: req.body.price,
-    technician: req.body.technician,
-    treatment: req.body.treatment
+    const appointmentPayload = {
+      clientId: clientDocument._id,
+      appointment: req.body.appointment,
+      control: req.body.control,
+      price: req.body.price,
+      technician: req.body.technician,
+      treatment: req.body.treatment
+    }
+
+    const addAppointmentResponse = await addAppointmentForClient(appointmentPayload, req, res);
+
+    if (addAppointmentResponse.success) { // TODO: refactor
+      return getAppointmentsAndControls(req, res);
+    }
+
+    return res.status(500).send(buildErrorResponse(addAppointmentResponse.error, errorMessages.ADD_APPOINTMENT));
+  } catch(err) {
+    return res.status(500).send(buildErrorResponse(err, errorMessages.ADD_APPOINTMENT));
   }
-
-  const addAppointmentResponse = await addAppointmentForClient(appointmentPayload, req, res);
-
-  if (addAppointmentResponse.success) { // TODO: refactor
-    return getAppointmentsAndControls(req, res);
-  }
-
-  return res.status(500).send(buildErrorResponse(addAppointmentResponse.error, errorMessages.ADD_APPOINTMENT));
 };
 
 const modifyAppointment = async (req, res) => {
