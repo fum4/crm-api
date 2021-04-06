@@ -1,5 +1,7 @@
 import db from '../models';
 import { ObjectId } from 'bson';
+import { buildErrorResponse, buildSuccessResponse } from '../helpers';
+import { errorMessages, successMessages } from '../static';
 
 const Client = db.models.Client;
 const Appointment = db.models.Appointment;
@@ -61,8 +63,8 @@ const getClients = async (req, res) => {
   });
 
   return Promise.all(clients)
-    .then((normalizedClients) => res.status(200).send(normalizedClients))
-    .catch((err) => res.status(500).send(err));
+    .then((normalizedClients) => res.status(200).send(buildSuccessResponse(normalizedClients, successMessages.GET_CLIENTS)))
+    .catch((err) => res.status(500).send(buildErrorResponse(err, errorMessages.GET_CLIENTS)));
 };
 
 const addClient = async (req, res) => {
@@ -87,13 +89,13 @@ const addClient = async (req, res) => {
       treatment
     }
 
-    const addAppointmentResponse = await addAppointmentForClient(appointmentPayload, req, res);
+    const addAppointmentResponse = await addAppointmentForClient(appointmentPayload);
 
     if (addAppointmentResponse.success) {
       return getClients(req, res);
     }
 
-    return res.status(500).send(addAppointmentResponse.error);
+    return res.status(500).send(buildErrorResponse(addAppointmentResponse.error, errorMessages.ADD_CLIENT));
   }
 
   return getClients(req, res);
@@ -107,14 +109,14 @@ const removeClient = (req, res) => {
     .then(() => Appointment.collection.deleteMany({ clientId }))
     .then(() => Control.collection.deleteMany({ clientId }))
     .then(() => getClients(req, res))
-    .catch((err) => res.status(500).json(err));
+    .catch((err) => res.status(500).json(buildErrorResponse(err, errorMessages.REMOVE_CLIENT)));
 };
 
 const removeControl = (req, res) => {
   return Control.collection
     .deleteOne({ _id: ObjectId(req.params.id) })
     .then(() => getAppointmentsAndControls(req, res))
-    .catch((err) => res.status(500).json(err));
+    .catch((err) => res.status(500).json(buildErrorResponse(err, errorMessages.REMOVE_CONTROL)));
 };
 
 const sortAppointmentsAndControls = (appointmentsAndControls) => {
@@ -163,7 +165,7 @@ const getAppointments = async () => {
 
       return Promise.all([clientInfo, controlInfo])
         .then(() => appointment)
-        .catch((error) => { console.log(error) });
+        .catch((error) => { console.log(error) }); // TODO: refactor this
     }
 
     return false;
@@ -200,7 +202,7 @@ const getControls = async () => {
 
           return control;
         })
-        .catch((error) => { console.log(error) });
+        .catch((error) => { console.log(error) }); // TODO: refactor this
     }
 
     return false;
@@ -215,13 +217,13 @@ const getAppointmentsAndControls = async (req, res) => {
     const controls = await getControls();
     const appointmentsAndControls = sortAppointmentsAndControls([...appointments, ...controls]);
 
-    return res.status(200).send(appointmentsAndControls);
+    return res.status(200).send(buildSuccessResponse(appointmentsAndControls, successMessages.GET_APPOINTMENTS_AND_CONTROLS));
   } catch (err) {
-    return res.status(500).send(err);
+    return res.status(500).send(buildErrorResponse(err, errorMessages.GET_APPOINTMENTS_AND_CONTROLS));
   }
 };
 
-const addAppointmentForClient = async (payload, req, res) => {
+const addAppointmentForClient = async (payload) => {
   const { clientId, appointment, price, technician, treatment, control } = payload;
 
   const appointmentDocument = await Appointment.create({
@@ -273,11 +275,11 @@ const addAppointment = async (req, res) => {
 
   const addAppointmentResponse = await addAppointmentForClient(appointmentPayload, req, res);
 
-  if (addAppointmentResponse.success) {
+  if (addAppointmentResponse.success) { // TODO: refactor
     return getAppointmentsAndControls(req, res);
   }
 
-  return res.status(500).send(addAppointmentResponse.error);
+  return res.status(500).send(buildErrorResponse(addAppointmentResponse.error, errorMessages.ADD_APPOINTMENT));
 };
 
 const modifyAppointment = async (req, res) => {
@@ -325,7 +327,7 @@ const modifyAppointment = async (req, res) => {
 
       return getAppointmentsAndControls(req, res);
     } catch (err) {
-      return res.status(500).json(err);
+      return res.status(500).json(buildErrorResponse(err, errorMessages.MODIFY_APPOINTMENT));
     }
   }
 };
@@ -360,8 +362,8 @@ const modifyControl = async (req, res) => {
 
     return Control.collection
       .updateOne({ _id: controlId }, { $set: { ...payload } })
-      .then(() => getAppointmentsAndControls(req, res))
-      .catch((err) => res.status(500).json(err));
+      .then(() => getAppointmentsAndControls(req, res)) // TODO: refactor
+      .catch((err) => res.status(500).json(buildErrorResponse(err, errorMessages.MODIFY_CONTROL)));
   }
 };
 
@@ -372,7 +374,7 @@ const removeAppointment = (req, res) => {
     .deleteOne({ _id: appointmentId })
     .then(() => Control.collection.deleteMany({ appointmentId }))
     .then(() => getAppointmentsAndControls(req, res))
-    .catch((err) => res.status(500).json(err));
+    .catch((err) => res.status(500).json(buildErrorResponse(err, errorMessages.REMOVE_APPOINTMENT)));
 };
 
 const ClientsController = {
