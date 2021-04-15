@@ -4,6 +4,7 @@ import Client from './client.model';
 import Appointment from './appointment.model';
 import Control from './control.model';
 import Role from './role.model';
+import logs from './logs.model';
 import 'dotenv/config';
 
 const MongoURI = process.env.MONGO_URI;
@@ -22,7 +23,8 @@ const ROLES = ['User', 'Moderator', 'Admin'];
 const db = {
   connect,
   ROLES,
-  models
+  models,
+  logs
 };
 
 export default db;
