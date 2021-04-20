@@ -2,7 +2,7 @@ import express from 'express';
 import db from './src/models/index';
 import { setupBaseMiddleware } from './src/middleware/index';
 import { AuthRouter, ClientsRouter } from './src/routes/index';
-import 'dotenv/config.js';
+import 'dotenv/config';
 
 const app = express();
 const port = process.env.PORT;
