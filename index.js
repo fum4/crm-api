@@ -1,7 +1,7 @@
 import express from 'express';
-import db from './src/models/index';
-import { setupBaseMiddleware } from './src/middleware/index';
-import { AuthRouter, ClientsRouter } from './src/routes/index';
+import db from './src/models';
+import { setupBaseMiddleware } from './src/middleware';
+import { AuthRouter, ClientsRouter } from './src/routes';
 import 'dotenv/config';
 
 const app = express();
@@ -14,5 +14,3 @@ db.connect().then(() => {
 
   app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 });
-
-module.exports = app;
