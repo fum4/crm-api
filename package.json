@@ -2,13 +2,13 @@
   "name": "express-app",
   "version": "1.0.0",
   "description": "",
-  "main": "./dist-src/index",
+  "main": "./build/index",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --exec babel-node ./src/index",
-    "start": "node ./dist-src/index",
-    "transpile": "babel ./src --out-dir dist-src",
-    "clean": "rimraf dist-src",
+    "start": "node ./build/index",
+    "transpile": "babel ./src --out-dir build",
+    "clean": "rimraf build",
     "build": "npm-run-all clean transpile"
   },
   "engines": {

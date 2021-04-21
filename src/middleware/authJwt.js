@@ -6,6 +6,10 @@ const User = db.user;
 const Role = db.role;
 
 const verifyToken = (req, res, next) => {
+  if (req.path == '/') {
+    return next();
+  }
+
   if (req.method === 'OPTIONS') {
     return res.status(200).send();
   }
