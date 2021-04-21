@@ -6,7 +6,7 @@ const User = db.user;
 const Role = db.role;
 
 const verifyToken = (req, res, next) => {
-  if (req.path == '/') {
+  if (req.path === '/') {
     return next();
   }
 
