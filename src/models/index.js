@@ -7,7 +7,8 @@ import Role from './role.model';
 import logs from './logs.model';
 import 'dotenv/config';
 
-const MongoURI = process.env.MONGO_URI;
+const MongoURI =
+  'mongodb+srv://fum4:1b2duj35@cluster0.v48nx.mongodb.net/smil32-db?retryWrites=true&w=majority';
 
 const connect = () => {
   return mongoose.connect(MongoURI, {
