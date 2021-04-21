@@ -1,16 +1,16 @@
 "use strict";
 
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+
 var _express = _interopRequireDefault(require("express"));
 
-var _models = _interopRequireDefault(require("./src/models"));
+var _models = _interopRequireDefault(require("./models"));
 
-var _middleware = require("./src/middleware");
+var _middleware = require("./middleware");
 
-var _routes = require("./src/routes");
+var _routes = require("./routes");
 
 require("dotenv/config");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 var app = (0, _express["default"])();
 var port = process.env.PORT;

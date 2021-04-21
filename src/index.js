@@ -1,7 +1,7 @@
 import express from 'express';
-import db from './src/models';
-import { setupBaseMiddleware } from './src/middleware';
-import { AuthRouter, ClientsRouter } from './src/routes';
+import db from './models';
+import { setupBaseMiddleware } from './middleware';
+import { AuthRouter, ClientsRouter } from './routes';
 import 'dotenv/config';
 
 const app = express();
