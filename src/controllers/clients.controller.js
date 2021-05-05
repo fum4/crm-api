@@ -204,13 +204,14 @@ const getAppointmentsAndControls = async (req, res) => {
 };
 
 const addClient = async (req, res) => {
-  const { name, surname, phone, address, appointment } = req.body;
+  const { name, surname, phone, address, appointment, comments } = req.body;
 
   const clientDocument = await Client.create({
     name,
     surname,
     phone,
-    address
+    address,
+    comments
   });
 
   if (appointment) {
@@ -353,6 +354,18 @@ const modifyControl = async (req, res) => {
   }
 };
 
+const modifyClient = async (req, res) => {
+  const { name, surname, phone, comments } = req.body;
+  const clientId = req.params.id && ObjectId(req.params.id);
+
+  if (clientId) {
+    return Client.collection
+      .updateOne({ _id: clientId }, { $set: { name, surname, phone, comments } })
+        .then(() => getClients(req, res))
+      .catch((error) => sendResponse(res, 500, true, error, errorMessages.MODIFY_CLIENT));
+  }
+};
+
 const removeClient = (req, res) => {
   const clientId = ObjectId(req.params.id);
 
@@ -386,6 +399,7 @@ const ClientsController = {
   getAppointmentsAndControls,
   addClient,
   addAppointment,
+  modifyClient,
   modifyAppointment,
   modifyControl,
   removeClient,

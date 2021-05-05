@@ -8,6 +8,7 @@ export const errorMessages = {
   ADD_CLIENT: 'Pacientul nu a putut fi adăugat în sistem.',
   MODIFY_APPOINTMENT: 'Programarea nu a putut fi modificată.',
   MODIFY_CONTROL: 'Controlul nu a putut fi modificat.',
+  MODIFY_CLIENT: 'Pacientul nu a putut fi modificat.',
 }
 
 export const successMessages = {
@@ -20,4 +21,5 @@ export const successMessages = {
   ADD_CLIENT: 'Pacientul a fost adăugat în sistem cu succes.',
   MODIFY_APPOINTMENT: 'Programarea a fost modificată cu succes.',
   MODIFY_CONTROL: 'Controlul a fost modificat cu succes.',
+  MODIFY_CLIENT: 'Pacientul a fost modificat cu succes.',
 }

@@ -19,6 +19,9 @@ const clientSchema = new Schema({
   appointments: {
     type: [Schema.Types.ObjectId],
     ref: 'Appointment'
+  },
+  comments: {
+    type: String
   }
 });
 
