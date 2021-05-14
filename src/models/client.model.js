@@ -23,6 +23,8 @@ const clientSchema = new Schema({
   comments: {
     type: String
   }
+}, {
+  versionKey: false
 });
 
 clientSchema.index({
