@@ -7,8 +7,7 @@ const AuthRouter = express.Router();
 AuthRouter.post('/login', AuthController.login);
 
 AuthRouter.post('/register', [
-    verifyRegister.checkDuplicateUsernameOrEmail,
-    verifyRegister.checkRolesExisted
+    verifyRegister.checkDuplicateUsernameOrEmail
   ],
   AuthController.register);
 

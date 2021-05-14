@@ -1,4 +1,4 @@
-import { Schema, model, Types } from 'mongoose';
+import { Schema, model } from 'mongoose';
 
 const userSchema = new Schema({
   username: {
@@ -8,13 +8,9 @@ const userSchema = new Schema({
   password: {
     type: String,
     required: true
-  },
-  roles: [
-    {
-      type: Types.ObjectId,
-      ref: 'Role'
-    }
-  ]
+  }
+}, {
+  versionKey: false
 });
 
 userSchema.index({

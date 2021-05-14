@@ -27,6 +27,8 @@ const appointmentSchema = new Schema({
     type: String,
     default: 'appointment'
   }
+}, {
+  versionKey: false
 });
 
 appointmentSchema.index({

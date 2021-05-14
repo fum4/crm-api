@@ -32,6 +32,8 @@ const controlSchema = new Schema({
     type: String,
     default: 'control'
   }
+}, {
+  versionKey: false
 });
 
 controlSchema.index({

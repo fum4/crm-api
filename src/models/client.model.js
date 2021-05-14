@@ -13,8 +13,7 @@ const clientSchema = new Schema({
     type: String
   },
   phone: {
-    type: String,
-    required: true
+    type: String
   },
   appointments: {
     type: [Schema.Types.ObjectId],
@@ -23,6 +22,8 @@ const clientSchema = new Schema({
   comments: {
     type: String
   }
+}, {
+  versionKey: false
 });
 
 clientSchema.index({
