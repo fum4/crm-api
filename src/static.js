@@ -16,7 +16,7 @@ export const successMessages = {
   REMOVE_APPOINTMENT: 'Programarea a fost anulată cu succes.',
   REMOVE_CONTROL: 'Controlul a fost anulat cu succes.',
   GET_CLIENTS: 'Pacienții au fost actualizați cu succes.',
-  GET_APPOINTMENTS_AND_CONTROLS: 'Toate programările au fost actualizate cu succes.',
+  GET_APPOINTMENTS_AND_CONTROLS: 'Programările au fost actualizate cu succes.',
   ADD_APPOINTMENT: 'Programarea a fost adăugată cu succes.',
   ADD_CLIENT: 'Pacientul a fost adăugat în sistem cu succes.',
   MODIFY_APPOINTMENT: 'Programarea a fost modificată cu succes.',
