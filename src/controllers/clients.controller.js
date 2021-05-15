@@ -125,6 +125,11 @@ const getControls = async () => {
   const promises = controls.map((control) => {
     const appointmentInfo = Appointment.collection
       .findOne({ _id: control.appointmentId })
+        .then((appointment) => {
+          if (appointment) {
+            control.appointment = appointment.appointment;
+          }
+        });
 
     const clientInfo = Client.collection
       .findOne({ _id: control.clientId })
