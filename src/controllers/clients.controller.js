@@ -138,12 +138,7 @@ const getControls = async () => {
 
     if (clientInfo) {
       return Promise.all([clientInfo, appointmentInfo])
-        .then(() => {
-          delete control.appointmentId;
-          delete control.clientId;
-
-          return control;
-        })
+        .then(() => control)
         .catch((error) => { console.log(error) }); // TODO: refactor this
     }
 
